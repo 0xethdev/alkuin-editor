@@ -1,0 +1,323 @@
+/* Theme overrides for ProseMark/CodeMirror */
+
+.cm-editor {
+  --pm-header-mark-color: var(--text-muted);
+  --pm-link-color: var(--link-color);
+  --pm-muted-color: var(--text-muted);
+  --pm-code-background-color: var(--code-bg);
+  --pm-code-font: var(--mono-font, "SF Mono", Menlo, Monaco, Consolas, monospace);
+  --pm-code-btn-background-color: var(--item-hover-bg);
+  --pm-code-btn-hover-background-color: var(--item-active-bg);
+  --pm-blockquote-vertical-line-background-color: var(--blockquote-border);
+  --pm-cursor-color: var(--text-primary);
+
+  --pm-syntax-link: var(--link-color);
+  --pm-syntax-keyword: oklch(70.05% 0.217 296.83);
+  --pm-syntax-atom: oklch(65.69% 0.2 259.93);
+  --pm-syntax-literal: oklch(71.27% 0.101 169.93);
+  --pm-syntax-string: oklch(68.53% 0.164 25.1);
+  --pm-syntax-regexp: oklch(76.88% 0.16 43.42);
+  --pm-syntax-definition-variable: oklch(61.42% 0.158 259.6);
+  --pm-syntax-local-variable: oklch(75.88% 0.082 184.11);
+  --pm-syntax-type-namespace: oklch(64.51% 0.083 165.19);
+  --pm-syntax-class-name: oklch(76.14% 0.1 168.52);
+  --pm-syntax-special-variable-macro: oklch(66.67% 0.193 282.06);
+  --pm-syntax-definition-property: oklch(58.92% 0.132 259.4);
+  --pm-syntax-comment: var(--text-muted);
+  --pm-syntax-invalid: oklch(75.93% 0.182 28.91);
+}
+
+/* @codemirror/view's base theme sets `.cm-cursor { border-left: 1.2px solid black }`,
+   which can win over prosemark's `border-left-color: var(--pm-cursor-color)` on
+   source order. Bump specificity here so the cursor stays readable in dark mode. */
+.cm-editor .cm-cursorLayer .cm-cursor,
+.cm-editor .cm-cursorLayer .cm-dropCursor {
+  border-left-color: var(--text-primary);
+}
+
+/* Selection — dimmed accent. CodeMirror's drawSelection extension paints
+   `.cm-selectionBackground` rectangles; the native `::selection` is the
+   fallback for text the drawn layer doesn't cover. Override both, and bump
+   specificity past CM's base theme on the focused-state selector. */
+.cm-editor .cm-selectionBackground,
+.cm-editor.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground,
+.cm-editor .cm-content ::selection {
+  background-color: var(--editor-selection-bg);
+}
+
+/* Editor layout — let parent handle scrolling */
+.cm-editor {
+  height: auto;
+  outline: none;
+  color: var(--text-secondary);
+  background: transparent;
+}
+
+/* CodeMirror's base theme is a document adopted stylesheet and sets
+   `font-family: monospace` on `.cm-scroller`. `ch` in the column clip below
+   resolves on this element, so the face and size have to match the draft.
+   Features stay on `.cm-content` — the gutter is a sibling and must not
+   pick up duospace. `html` is only here so this beats the adopted rule. */
+html .cm-editor > .cm-scroller {
+  font-family: var(
+    --writer-editor-font-family,
+    "Paper Mono",
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace
+  );
+  font-size: var(--writer-editor-font-size, 14px);
+}
+
+.cm-editor .cm-scroller {
+  overflow: visible !important;
+
+  /* The draft is left-aligned. Padding-right is whatever is left after the
+     left step and the 75ch measure, so the line wraps at the measure and the
+     rest of the pane stays empty. `drawSelection`'s between-filler still
+     paints across that empty pad, so the right clip is the pad and the left
+     clip stays open for the hanging hash and the list dash. */
+  --writer-column-pad-right: max(
+    1.5rem,
+    calc(100% - var(--writer-column-pad-left, 75px) - var(--writer-editor-max-width, 75ch))
+  );
+  clip-path: inset(0 var(--writer-column-pad-right) 0 0);
+}
+
+/* Selection-layer counter-clip. CM6 sets `position: absolute; left: 0;
+   top: 0; contain: size style` with no width/height, so a clip-path on the
+   layer alone clips to a 0x0 reference box. Force the layer to size to its
+   positioning context (`.cm-scroller`) so its clip-path actually clips the
+   absolutely-positioned rect children to the inner text column.
+
+   This restores the `selection-rect-bleeds-past-text` fix on the left
+   (which the relaxed scroller clip above no longer covers) without
+   re-introducing the clip-path on `.cm-scroller` that would also hide the
+   hanging heading hash. Right-side bleed remains clipped by the scroller.
+   `pointer-events: none` is preserved by inheritance from CM's defaults;
+   we explicitly set `contain: layout paint` to drop `size` containment so
+   `width/height: 100%` actually applies. */
+.cm-editor .cm-selectionLayer {
+  width: 100%;
+  height: 100%;
+  contain: layout paint;
+  clip-path: inset(0 var(--writer-column-pad-right) 0 var(--writer-column-pad-left, 75px));
+}
+
+/* The base theme's `margin: 0` and `padding: 4px 0` tie `.cm-editor .cm-content`
+   and win, because adopted stylesheets sit above the document. Without the page
+   inset the clip (which still assumes that inset and a centered column) cuts
+   the first glyph and the bullet, and the line runs through the right gutter.
+   The child combinator is the extra specificity. */
+.cm-editor > .cm-scroller > .cm-content {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: var(--writer-editor-top-padding, 4rem) var(--writer-column-pad-right, 1.5rem) 40vh
+    var(--writer-column-pad-left, 75px);
+  font-family: var(
+    --writer-editor-font-family,
+    "Paper Mono",
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace
+  );
+  font-size: var(--writer-editor-font-size, 14px);
+  line-height: var(--writer-editor-line-height, 1.8);
+  letter-spacing: var(--writer-editor-letter-spacing, -0.03em);
+  color: var(--text-secondary);
+}
+
+/* Body ink on the light desk. Sidebar and chrome keep --text-secondary. */
+[data-theme="light"] .cm-editor > .cm-scroller > .cm-content {
+  color: #2a2723;
+}
+
+/* Override CodeMirror's base-theme `.cm-line { padding: 0 2px 0 6px }`
+   side padding. The page inset already lives on `.cm-content`, so the
+   stray 6px / 2px just shifts text relative to cm-content's content area
+   (and shows up as a small offset in `drawSelection`'s computed
+   leftSide/rightSide). */
+.cm-editor > .cm-scroller > .cm-content > .cm-line,
+.ͼp .cm-horizontal-rule-container {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.cm-line.cm-blockquote-line::before {
+  inset-inline-start: 0;
+}
+/* Same specificity as the line-padding reset above, and later, so the 12px
+   inset still wins. A shorter selector loses to that reset. */
+.cm-editor > .cm-scroller > .cm-content > .cm-fenced-code-line {
+  margin-left: 0;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* Blank lines separate paragraphs. 1em was the tight gap; +6px opens it to the mock. */
+.cm-editor .cm-line:has(> br:only-child) {
+  line-height: calc(1em + 6px);
+}
+
+/* Indent blockquote text so it doesn't hug the vertical bar */
+/* Same specificity as the line-padding reset, and later, so the quote indent
+   is not zeroed with the base-theme 6px. */
+.cm-editor > .cm-scroller > .cm-content > .cm-blockquote-line {
+  padding-inline-start: 1em;
+}
+
+/* The CodeMirror search extension renders its panel into `.cm-panels-bottom`
+   which carries a default border-top divider. We use a hidden panel only to
+   flip the search state on (so the built-in match highlighter renders); the
+   actual UI is the React `EditorSearchOverlay`, so the wrapper must not paint. */
+.cm-editor .cm-panels,
+.cm-editor .cm-panels-top,
+.cm-editor .cm-panels-bottom {
+  display: none !important;
+}
+
+/* Hide gutters for a clean writing experience */
+.cm-editor .cm-gutters {
+  display: none;
+}
+
+/* Code block header overrides */
+.cm-editor .cm-code-block-lang-container {
+  display: none;
+}
+
+.cm-editor .cm-code-block-copy-button {
+  display: none;
+}
+
+/* Task checkboxes — CSS-drawn on the measurable source prefix mark. There is
+   no native input or widget DOM in the drag-selection hit-test path. */
+.cm-editor .cm-list-prefix-task {
+  cursor: pointer;
+}
+
+.cm-editor .cm-list-prefix-task::before {
+  content: "";
+  inset-inline-start: calc(var(--cm-list-marker-offset) + (var(--cm-list-marker-width) - 28px) / 2);
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  border: 1.5px solid var(--text-muted);
+  border-radius: 5px;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+.cm-editor .cm-list-prefix-task-checked::before {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 12.5L10.5 15L16 9'/%3E%3C/svg%3E");
+  background-size: 20px 20px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Hang ATX heading hash markers (`#`/`##`/…) in the left margin so the
+   heading text aligns flush with body content. The mark covers the hash
+   chars + the trailing space (matching prosemark's default hide range);
+   absolute positioning takes them out of the inline flow so the heading
+   text starts at the line's left edge regardless of caret state.
+
+   Margin hashes stay visible in muted ink, including while the caret is off
+   the heading. Prosemark's hide spec still adds `.cm-hidden-token` to that
+   range; CodeMirror NESTS the marks (`.cm-heading-hash > .cm-hidden-token
+   > text`). We keep that span at full opacity.
+
+   The hash must keep a real size, NEVER `.cm-hidden-token`'s
+   `font-size: 0px` — hence the `font-size: inherit !important` overrides
+   on both the outer and the nested span (`inherit` on the outer span
+   alone leaves the inner one at 0px). A 0px hash isn't just invisible:
+   it measures as a collapsed zero-height rect at the baseline, and
+   CodeMirror's vertical caret motion (posAtCoords' line-padding check)
+   probes `coordsAt(lineFrom)` — the hash — to decide whether the probe
+   landed inside the heading line. With the collapsed rect, ArrowUp from
+   a blank line below a default-size heading (h4–h6) overshoots the
+   baseline by ~1px, the check rejects the heading line, and the caret
+   skips to the line above the heading. */
+.cm-editor .cm-markdown-heading {
+  padding-top: 0.25rem;
+}
+
+.cm-editor .cm-heading-line {
+  position: relative;
+}
+
+.cm-editor .cm-heading-hash {
+  position: absolute;
+  right: 100%;
+  padding-right: 0.4em;
+  color: #a8a39a;
+  font-weight: 400;
+  white-space: pre;
+  pointer-events: auto;
+  /* Beat prosemark's header-mark opacity (0.4) and `.cm-hidden-token`'s
+     `font-size: 0`. Sizes below are absolute so they match the heading text
+     even when a highlight span already set an em size — a second em would
+     compound. H1 is `--writer-title-size` in type-altitude.css. H2 and H3
+     are `--writer-section-size`, matching `headingTagStyles` in
+     syntaxHighlighting.ts. H4–H6 are body size.
+     Line-height is inherited so the mark sits on the heading's line, not
+     as a smaller superscript. */
+  font-size: inherit !important;
+  opacity: 1;
+  line-height: inherit;
+}
+
+.cm-editor .cm-heading-hash span {
+  color: #a8a39a;
+  font-weight: 400;
+  opacity: 1;
+  line-height: inherit;
+}
+
+.cm-editor .cm-heading-line-2 .cm-heading-hash,
+.cm-editor .cm-heading-line-2 .cm-heading-hash span,
+.cm-editor .cm-heading-line-3 .cm-heading-hash,
+.cm-editor .cm-heading-line-3 .cm-heading-hash span {
+  font-size: var(--writer-section-size) !important;
+}
+
+.cm-editor .cm-heading-line-4 .cm-heading-hash,
+.cm-editor .cm-heading-line-4 .cm-heading-hash span,
+.cm-editor .cm-heading-line-5 .cm-heading-hash,
+.cm-editor .cm-heading-line-5 .cm-heading-hash span,
+.cm-editor .cm-heading-line-6 .cm-heading-hash,
+.cm-editor .cm-heading-line-6 .cm-heading-hash span {
+  font-size: var(--writer-editor-font-size, 14px) !important;
+}
+
+.cm-editor .cm-heading-hash .cm-hidden-token {
+  font-size: inherit !important;
+  opacity: 1;
+}
+
+/* Inline marks inside a heading. The title face is already bold; strong goes
+   heavier, and italic is allowed to synthesize. Markers hide via the same
+   replace decoration body text uses, until the caret is on the token. */
+.cm-editor .cm-heading-line .cm-emphasis,
+.cm-editor .cm-heading-line .cm-emphasis span {
+  font-style: italic;
+}
+
+.cm-editor .cm-heading-line .cm-strong,
+.cm-editor .cm-heading-line .cm-strong span {
+  font-style: normal;
+  font-weight: 850;
+}
+
+/* Wiki-link autocomplete tooltip uses the UI font, not the editor font */
+.cm-editor .cm-tooltip.cm-tooltip-autocomplete > ul,
+.cm-editor .cm-tooltip.cm-tooltip-autocomplete > ul > li {
+  font-family: var(--ui-font);
+}

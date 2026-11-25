@@ -1,0 +1,336 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`passagesToSend output is stable across a seeded set of edits 1`] = `
+[
+  [
+    {
+      "body": "By",
+      "original": " Maria checks it twice before lunch.
+
+By",
+      "passage": "156:196",
+      "payloadRef": "s-156-53ddadb4",
+    },
+  ],
+  [
+    {
+      "body": "small By",
+      "original": "ins-before:2:Bysmall ",
+      "passage": "194:196",
+      "payloadRef": "s-194-45b5aad1",
+    },
+  ],
+  [
+    {
+      "body": "the small",
+      "original": "ins:3:the small",
+      "passage": "43:46",
+      "payloadRef": "s-43-22b3043b",
+    },
+  ],
+  [
+    {
+      "body": "pencil, small",
+      "original": "ins:7:pencil, small",
+      "passage": "115:122",
+      "payloadRef": "s-115-b61ed27f",
+    },
+  ],
+  [
+    {
+      "body": "the small",
+      "original": "ins:3:the small",
+      "passage": "26:29",
+      "payloadRef": "s-26-22b3043b",
+    },
+  ],
+  [
+    {
+      "body": "number small",
+      "original": "ins:6:number small",
+      "passage": "132:138",
+      "payloadRef": "s-132-fcfeb797",
+    },
+  ],
+  [
+    {
+      "body": "in small",
+      "original": "ins:2:in small",
+      "passage": "112:114",
+      "payloadRef": "s-112-0c63ef29",
+    },
+  ],
+  [
+    {
+      "body": "boats small",
+      "original": "ins:5:boats small",
+      "passage": "47:52",
+      "payloadRef": "s-47-d0e62c1f",
+    },
+  ],
+  [
+    {
+      "body": "late turns",
+      "original": "ins-before:5:turnslate ",
+      "passage": "252:257",
+      "payloadRef": "s-252-ea73f1b1",
+    },
+  ],
+  [
+    {
+      "body": "By",
+      "original": "
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.
+
+By",
+      "passage": "96:196",
+      "payloadRef": "s-96-53ddadb4",
+    },
+    {
+      "body": "brass.
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.",
+      "original": "ins:6:brass.
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.",
+      "passage": "275:281",
+      "payloadRef": "s-275-5109c183",
+    },
+  ],
+  [
+    {
+      "body": "By",
+      "original": "The harbor stays quiet in the morning, and the boats wait by the long pier. Nobody hurries here.
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.
+
+By",
+      "passage": "0:196",
+      "payloadRef": "s-0-53ddadb4",
+    },
+    {
+      "body": "brass.
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.
+
+The harbor stays quiet in the morning, and the boats wait by the long pier. Nobody hurries here.",
+      "original": "ins:6:brass.
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.
+
+The harbor stays quiet in the morning, and the boats wait by the long pier. Nobody hurries here.",
+      "passage": "275:281",
+      "payloadRef": "s-275-8edc6f33",
+    },
+  ],
+  [
+    {
+      "body": "By",
+      "original": "
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.
+
+By",
+      "passage": "96:196",
+      "payloadRef": "s-96-53ddadb4",
+    },
+    {
+      "body": "brass.
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.",
+      "original": "ins:6:brass.
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.",
+      "passage": "275:281",
+      "payloadRef": "s-275-5109c183",
+    },
+  ],
+  [
+    {
+      "body": "By",
+      "original": "
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.
+
+By",
+      "passage": "96:196",
+      "payloadRef": "s-96-53ddadb4",
+    },
+    {
+      "body": "brass.
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.",
+      "original": "ins:6:brass.
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.",
+      "passage": "275:281",
+      "payloadRef": "s-275-5109c183",
+    },
+  ],
+  [
+    {
+      "body": "The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.
+
+The",
+      "original": "ins-before:3:TheThe ledger is in pencil, so every number can still change. Maria checks it twice before lunch.
+
+",
+      "passage": "0:3",
+      "payloadRef": "s-0-4e842531",
+    },
+    {
+      "body": "By",
+      "original": "
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.
+
+By",
+      "passage": "96:196",
+      "payloadRef": "s-96-53ddadb4",
+    },
+  ],
+  [
+    {
+      "body": "The small",
+      "original": "ins:3:The small",
+      "passage": "98:101",
+      "payloadRef": "s-98-ee881cdb",
+    },
+  ],
+  [
+    {
+      "body": "small lunch.",
+      "original": "ins-before:6:lunch.small ",
+      "passage": "186:192",
+      "payloadRef": "s-186-1f45adaa",
+    },
+  ],
+  [
+    {
+      "body": "odd lunch.",
+      "original": "ins-before:6:lunch.odd ",
+      "passage": "186:192",
+      "payloadRef": "s-186-566ef86c",
+    },
+  ],
+  [
+    {
+      "body": "small time,",
+      "original": "ins-before:5:time,small ",
+      "passage": "232:237",
+      "payloadRef": "s-232-152b5f4b",
+    },
+  ],
+  [
+    {
+      "body": "number small",
+      "original": "ins:6:number small",
+      "passage": "132:138",
+      "payloadRef": "s-132-fcfeb797",
+    },
+  ],
+  [
+    {
+      "body": "small of",
+      "original": "ins-before:2:ofsmall ",
+      "passage": "268:270",
+      "payloadRef": "s-268-511239f5",
+    },
+  ],
+  [
+    {
+      "body": "the small",
+      "original": "ins:3:the small",
+      "passage": "26:29",
+      "payloadRef": "s-26-22b3043b",
+    },
+  ],
+  [
+    {
+      "body": "small of",
+      "original": "ins-before:2:ofsmall ",
+      "passage": "268:270",
+      "payloadRef": "s-268-511239f5",
+    },
+  ],
+  [
+    {
+      "body": "The small",
+      "original": "ins:3:The small",
+      "passage": "98:101",
+      "payloadRef": "s-98-ee881cdb",
+    },
+  ],
+  [
+    {
+      "body": "small The",
+      "original": "ins-before:3:Thesmall ",
+      "passage": "0:3",
+      "payloadRef": "s-0-a361e797",
+    },
+  ],
+  [
+    {
+      "body": "in small",
+      "original": "ins:2:in small",
+      "passage": "112:114",
+      "payloadRef": "s-112-0c63ef29",
+    },
+  ],
+  [
+    {
+      "body": "odd lamps",
+      "original": "ins-before:5:lampsodd ",
+      "passage": "209:214",
+      "payloadRef": "s-209-5b129d95",
+    },
+  ],
+  [
+    {
+      "body": "time!",
+      "original": "time,",
+      "passage": "232:237",
+      "payloadRef": "s-232-8b69371f",
+    },
+  ],
+  [
+    {
+      "body": "The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.
+
+The",
+      "original": "ins-before:3:TheThe ledger is in pencil, so every number can still change. Maria checks it twice before lunch.
+
+",
+      "passage": "0:3",
+      "payloadRef": "s-0-4e842531",
+    },
+    {
+      "body": "By",
+      "original": "
+
+The ledger is in pencil, so every number can still change. Maria checks it twice before lunch.
+
+By",
+      "passage": "96:196",
+      "payloadRef": "s-96-53ddadb4",
+    },
+  ],
+  [
+    {
+      "body": "small the",
+      "original": "ins-before:3:thesmall ",
+      "passage": "205:208",
+      "payloadRef": "s-205-40d5bcf7",
+    },
+  ],
+  [
+    {
+      "body": "The harbor small",
+      "original": "The harbor",
+      "passage": "0:10",
+      "payloadRef": "s-0-c25e7041",
+    },
+  ],
+]
+`;

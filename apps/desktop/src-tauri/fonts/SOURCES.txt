@@ -1,0 +1,48 @@
+Droid Sans Fallback
+File: DroidSansFallbackFull.ttf
+Bytes: 4033420
+SHA-256: acb6440a713d880a13a21b468ba7cd43f5a2b2934972e51be791c880730777b8
+Copyright: 2006-2010 Google Corp.
+License: Apache-2.0 (LICENSE-Apache-2.0.txt)
+Source: the Android Droid Sans Fallback file shipped as fonts-droid-fallback,
+identical bytes to /usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf
+on the measurement machine. Covers the Han character U+6E2F. Does not cover
+U+1F30A.
+
+Noto Emoji
+File: NotoEmoji-Regular.ttf
+Bytes: 1982596
+SHA-256: de6c18832938afc99caf132b39d6a30a19bac7f2e812e28db2535b4608d27551
+Copyright: 2013 Google LLC
+License: SIL Open Font License 1.1 (OFL-1.1.txt)
+Source: https://github.com/google/fonts/raw/main/ofl/notoemoji/NotoEmoji%5Bwght%5D.ttf
+The file is the variable outline font. It is not the color bitmap font.
+It covers U+1F30A. A PDF that uses it draws the default instance.
+
+These are the full fonts. Export does not ship a one-glyph subset.
+A character in none of Times, Droid Sans Fallback, and Noto Emoji stops the PDF.
+
+Newsreader
+File: Newsreader-Variable.ttf
+Bytes: 451664
+SHA-256: 8a08d13f8a6c0d51be379a60af84f945f65369a67e509ee3c3bdcc421254d7c1
+Used for Latin text inside an SVG. Not embedded in the PDF. Times still draws
+Latin in the PDF. The typographic family name is Newsreader. serif, sans-serif,
+cursive, fantasy, and monospace in an SVG all resolve to it.
+License: SIL Open Font License 1.1 (NEWSREADER-OFL.txt)
+Copyright: 2020 The Newsreader Project Authors
+(http://github.com/productiontype/Newsreader)
+
+Times metrics
+File: ../src/pdf_widths.inc
+The advance widths of the standard Times fonts, as published in Adobe's
+Core 14 font metrics files. PDF export uses them to place text.
+Copyright (c) 1985, 1987, 1989, 1990, 1993, 1997 Adobe Systems Incorporated.
+All Rights Reserved.
+This file and the 14 PostScript(R) AFM files it accompanies may be used,
+copied, and distributed for any purpose and without charge, with or without
+modification, provided that all copyright notices are retained; that the AFM
+files are not distributed without this file; that all modifications to this
+file or any of the AFM files are prominently noted in the modified file(s);
+and that this paragraph is not modified. Adobe Systems has no responsibility
+or obligation to support the use of the AFM files.

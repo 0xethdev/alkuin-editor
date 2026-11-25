@@ -1,0 +1,103 @@
+/* Warm margin mark. --rubric is the theme's token when that theme is present.
+   The fallback is the brand period, so this section does not wait on that PR. */
+.mention-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--rubric, #d33c33);
+}
+
+.mention-count {
+  margin-left: 4px;
+  color: var(--rubric, #d33c33);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.shared-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  margin: 0;
+  padding: 4px 8px 4px 10px;
+  border-radius: 8px;
+  color: var(--fg-base);
+}
+
+.shared-open {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.shared-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.shared-action {
+  margin: 0;
+  padding: 2px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.shared-row:hover {
+  background: var(--surface-subtle);
+}
+
+.shared-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.shared-title,
+.shared-owner {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shared-title {
+  font-size: 13px;
+  line-height: 1.15;
+}
+
+.shared-owner {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.shared-empty {
+  margin: 0;
+  padding: 2px 12px 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.shared-empty-next {
+  display: block;
+  margin-top: 2px;
+}

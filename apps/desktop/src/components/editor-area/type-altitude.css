@@ -1,0 +1,76 @@
+/* Document H1 and the blank-draft promise use the editor face (Paper Mono).
+   The title is `--writer-title-size` (17/11 of the body) and bold. H2 is
+   `--writer-section-size` in syntaxHighlighting.ts. The hash is the same
+   size as its heading, in a lighter grey, so it stays a gutter mark. */
+
+.cm-editor .cm-heading-line-1,
+.paper-title {
+  font-family: var(--writer-editor-font-family, var(--editor-font));
+  font-size: var(--writer-title-size);
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.25;
+  color: #141312;
+}
+
+.paper-title {
+  font-size: var(--writer-title-size);
+}
+
+/* Title glyphs. Size lives on the spans: the hash rule below is
+   `font-size: … !important`, so a size on the line would not reach it.
+   Weight and style stay inherited so *italic* and **bold** can restyle. */
+.cm-editor .cm-heading-line-1 span {
+  font-family: var(--writer-editor-font-family, var(--editor-font));
+  font-size: var(--writer-title-size);
+  letter-spacing: 0;
+}
+
+.cm-editor .cm-heading-line-1 .cm-heading-hash,
+.cm-editor .cm-heading-line-1 .cm-heading-hash span {
+  font-family: var(--writer-editor-font-family, var(--editor-font, inherit));
+  font-size: var(--writer-title-size) !important;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.25;
+  color: #a8a39a;
+}
+
+/* The blank under the title already grows 6px with every paragraph gap.
+   The other 9px is the mock's extra step from the title down to the body. */
+.cm-editor .cm-heading-line-1 {
+  padding-bottom: 9px;
+}
+
+[data-theme="dark"] .cm-editor .cm-heading-line-1 {
+  color: inherit;
+}
+
+.cm-blank-promise {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 46%;
+  width: min(26em, 72%);
+  margin: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  text-align: center;
+  font-family: var(--writer-editor-font-family, var(--editor-font));
+  font-style: normal;
+  font-weight: 400;
+  font-size: 15.5px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  color: #a8a194;
+}
+
+.cm-blank-promise[hidden] {
+  display: none !important;
+}
+
+[data-theme="dark"] .cm-blank-promise {
+  color: var(--text-muted);
+}

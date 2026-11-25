@@ -1,0 +1,171 @@
+/* Opaque paper pill. Document text must not show through the bar or its menu. */
+
+.cm-editor {
+  position: relative;
+}
+
+.cm-editor .cm-selection-bubble {
+  --paper-elevated: #faf8f5;
+  --bubble-fill: var(--paper-elevated);
+  --bubble-line: color-mix(in srgb, var(--redline-ash, #9a948c) 35%, transparent);
+  --bubble-shadow: 0 8px 24px rgb(40 32 20 / 14%);
+  position: absolute;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+  user-select: none;
+}
+
+.cm-editor .cm-selection-bubble[hidden] {
+  display: none;
+}
+
+.cm-editor .cm-selection-bubble[data-side="below"] {
+  flex-direction: column-reverse;
+}
+
+[data-theme="dark"] .cm-editor .cm-selection-bubble {
+  --paper-elevated: #1e1e1c;
+  --bubble-line: color-mix(in srgb, #f3eee4 18%, transparent);
+  --bubble-shadow: 0 8px 24px rgb(0 0 0 / 40%);
+}
+
+.cm-editor .cm-selection-bubble-strip {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 2px 3px;
+  background: var(--bubble-fill);
+  border: 1px solid var(--bubble-line);
+  border-radius: 8px;
+  box-shadow: var(--bubble-shadow);
+}
+
+.cm-editor .cm-selection-bubble-strip button {
+  appearance: none;
+  height: 22px;
+  min-width: 22px;
+  margin: 0;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: #3a3530;
+  font-family: var(--ui-font, Inter, system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cm-editor .cm-selection-bubble-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: color-mix(in srgb, var(--redline-ash, #9a948c) 14%, transparent);
+}
+
+.cm-editor .cm-selection-bubble-strip button[data-command="format.bold"] {
+  font-weight: 700;
+}
+
+.cm-editor .cm-selection-bubble-strip button[data-command="format.italic"] {
+  font-style: italic;
+  font-weight: 500;
+}
+
+.cm-editor .cm-selection-bubble-strip button:hover,
+.cm-editor .cm-selection-bubble-strip button:focus-visible,
+.cm-editor .cm-selection-bubble-strip button[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--redline-ash, #9a948c) 16%, transparent);
+}
+
+.cm-editor .cm-selection-bubble-sep {
+  width: 1px;
+  height: 12px;
+  margin: 0 2px;
+  background: var(--bubble-line);
+  flex-shrink: 0;
+}
+
+.cm-editor .cm-selection-bubble-more {
+  pointer-events: auto;
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  min-width: 148px;
+  max-height: 260px;
+  overflow-y: auto;
+  width: max-content;
+  padding: 5px 3px;
+  background: var(--bubble-fill);
+  border: 1px solid var(--bubble-line);
+  border-radius: 8px;
+  box-shadow: var(--bubble-shadow);
+}
+
+.cm-editor .cm-selection-bubble[data-side="below"] .cm-selection-bubble-more {
+  bottom: auto;
+  top: calc(100% + 4px);
+}
+
+.cm-editor .cm-selection-bubble-more[hidden] {
+  display: none;
+}
+
+.cm-editor .cm-selection-bubble-more-group + .cm-selection-bubble-more-group {
+  margin-top: 3px;
+  padding-top: 3px;
+  border-top: 1px solid color-mix(in srgb, var(--redline-ash, #9a948c) 16%, transparent);
+}
+
+.cm-editor .cm-selection-bubble-more-title {
+  padding: 2px 7px 3px;
+  color: color-mix(in srgb, var(--redline-ash, #9a948c) 72%, #2a2824);
+  font-family: var(--ui-font, Inter, system-ui, sans-serif);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cm-editor .cm-selection-bubble-more button {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 22px;
+  margin: 0;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: #3a3530;
+  font-family: var(--ui-font, Inter, system-ui, sans-serif);
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+[data-theme="dark"] .cm-editor .cm-selection-bubble-strip button,
+[data-theme="dark"] .cm-editor .cm-selection-bubble-more button {
+  color: #f3eee4;
+}
+
+[data-theme="dark"] .cm-editor .cm-selection-bubble-more-title {
+  color: #c8c2b8;
+}
+
+.cm-editor .cm-selection-bubble-more button:hover,
+.cm-editor .cm-selection-bubble-more button:focus-visible {
+  background: color-mix(in srgb, var(--redline-ash, #9a948c) 16%, transparent);
+}

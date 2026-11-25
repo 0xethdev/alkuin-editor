@@ -1,0 +1,35 @@
+{
+  "about": "One table for the sync file-name rule. `safe_local_name` in src-tauri/src/commands/history.rs is tested against it. The app and the sync server must give every name listed here the same answer.",
+  "stored": [
+    "my notes.md",
+    "Clients/Acme/Secret-Plan.md",
+    "A_b-c.d",
+    "café.md",
+    "café.md",
+    "笔记.md",
+    "plan (draft).md",
+    "chapter [1].md",
+    "हिन्दी.md",
+    "Mom's recipes.md",
+    "Mom’s recipes.md",
+    "Q&A.md",
+    "Notes, part 1.md",
+    "Tom & Jerry, draft 2.md"
+  ],
+  "refused": [
+    "",
+    "../x",
+    "a/../b.md",
+    "a//b.md",
+    "/tmp/x.md",
+    ".hidden.md",
+    "notes/.git/config",
+    "a\\b.md",
+    "a:b.md",
+    "nul\u0000.md",
+    "zero​width.md",
+    "gpj.‮txt.md",
+    "'quoted first.md",
+    "Why?.md"
+  ]
+}

@@ -1,0 +1,540 @@
+@font-face {
+  font-family: "Nothing You Could Do";
+  src: url("./fonts/NothingYouCouldDo-latin-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.cm-editor {
+  --redline-gutter-width: 268px;
+  --redline-ash: #9a948c;
+  --redline-mark: #d33c33;
+  /* Mock selection wash. The open note and the native selection both paint
+     this, so 16% each reads as the mock's soft grey. */
+  --redline-select: color-mix(in srgb, var(--redline-ash) 16%, transparent);
+  /* Inside the note rail. Left matches the mock's pad from the hairline.
+     Right is the pad before the window edge, shared by Cancel and the rule. */
+  --redline-rail-pad: 28px;
+  --redline-rail-pad-right: 42px;
+  --redline-stub: #2a2723;
+  --redline-compose-ink: #2a2723;
+  --redline-scribble: "Nothing You Could Do", "Patrick Hand", cursive;
+  /* 20px: the x-height sits near Caveat at 22px, and near Paper Mono at 16px. */
+  --redline-scribble-size: 20px;
+  --redline-label-size: 10px;
+  --redline-note-stack: 2px;
+  --redline-hand: #6f6a62;
+  --redline-ink: #3a4a7a;
+  --redline-ink-insert: #5a3a3a;
+  --redline-accept: #2f5a3a;
+  --redline-reject: #8a3a35;
+  --redline-span: color-mix(in srgb, var(--redline-mark) 28%, transparent);
+}
+
+/* Cream parchment on the file pane so the live desk is not plain white.
+   Dark keeps the theme. */
+[data-theme="light"] [data-pane] {
+  --redline-paper: var(--page-bg, var(--bg-base, #f7f3ec));
+  background-color: var(--redline-paper);
+}
+
+/* Night: the cream ink and the accept/reject greens and reds are too dark
+   to read. Lift them. The light desk keeps the values above. */
+[data-theme="dark"] .cm-editor {
+  --redline-ink: #d5d8e4;
+  --redline-ink-insert: #f0c8c4;
+  --redline-accept: #7dcea0;
+  --redline-reject: #f0a09a;
+  --redline-span: color-mix(in srgb, var(--redline-mark) 42%, transparent);
+  /* Cream wash, high enough to read on night paper. Light stays the 16% ash. */
+  --redline-select: color-mix(in srgb, #f3eee4 46%, transparent);
+  --redline-hand: #c8c2b8;
+  --redline-stub: #c8c2b8;
+  --redline-compose-ink: #c8c2b8;
+}
+
+.cm-editor[data-redline-notes]:not([data-redline-notes="0"]) {
+  overflow: visible;
+}
+
+/* The draft and the 268px rail are one centered unit. The draft stops at
+   --writer-editor-max-width (ch, so text size moves the cap). Spare width
+   splits to the outer edges. A pane too narrow to center keeps the 75px
+   step and the 95px gap, and the line shrinks instead of overlapping the rail. */
+.cm-editor[data-redline-notes]:not([data-redline-notes="0"]) > .cm-scroller {
+  --redline-sidebar-width: 268px;
+  --redline-rail-gap: 95px;
+  --redline-gutter-width: var(--redline-sidebar-width);
+  --writer-unit: calc(
+    var(--writer-editor-max-width, 75ch) + var(--redline-rail-gap) + var(--redline-sidebar-width)
+  );
+  --writer-half: calc((100% - var(--writer-unit)) / 2);
+  --writer-column-pad-left: max(75px, var(--writer-half));
+  --redline-gutter-inset-right: max(0px, var(--writer-half));
+  --writer-column-pad-right: calc(
+    var(--redline-sidebar-width) + var(--redline-rail-gap) + var(--redline-gutter-inset-right)
+  );
+  clip-path: inset(0 0 0 0);
+}
+
+.cm-redline-gutter {
+  position: absolute;
+  z-index: 6;
+  right: var(--redline-gutter-inset-right, 0px);
+  left: auto;
+  width: var(--redline-sidebar-width, 268px);
+  pointer-events: none;
+  box-sizing: border-box;
+  overflow: visible;
+  padding: 0 var(--redline-rail-pad, 28px);
+}
+
+.cm-redline-gutter::before {
+  content: "";
+  position: absolute;
+  /* Below the tab row. The rail itself starts at the top of the draft. */
+  top: calc(var(--chrome-control-height) + var(--chrome-control-padding) * 2);
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: rgba(80, 70, 55, 0.28);
+}
+
+.cm-redline-gutter-stub {
+  position: absolute;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--redline-stub, #2a2723);
+  pointer-events: none;
+}
+
+.cm-editor .cm-content .cm-redline-open,
+.cm-editor .cm-content .cm-redline-del,
+.cm-editor .cm-content .cm-redline-ins {
+  /* Rubric stays on a proposed change. An open selection uses --redline-select.
+     Clone so each wrap fragment is its own box. No inline pad — 0.42em side
+     padding cloned onto a short last wrap and stuck past the glyphs. */
+  background-color: var(--redline-span);
+  background-image: none;
+  border-radius: 0.42em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  box-shadow: none;
+  padding: 0.12em 0;
+  margin: 0;
+}
+
+.cm-editor .cm-content .cm-redline-open {
+  background-color: var(--redline-select);
+}
+
+/* Live selection: drawSelection extends toOpen fragments to content rightSide
+   and paints a full-width between-filler, so a short first/middle row bleeds
+   past the glyphs. Native ::selection hugs each fragment. Beat
+   hideNativeSelection (transparent !important on `.cm-line ::selection`). */
+.cm-editor .cm-content .cm-line ::selection,
+.cm-editor .cm-content .cm-line::selection {
+  background-color: var(--redline-select) !important;
+}
+
+.cm-editor .cm-scroller .cm-selectionLayer .cm-selectionBackground {
+  background-color: transparent !important;
+}
+
+/* Night: the drawn selection and the native one share the stronger wash.
+   Light keeps the rects transparent so a short row does not bleed. */
+[data-theme="dark"] .cm-editor .cm-scroller .cm-selectionLayer .cm-selectionBackground,
+[data-theme="dark"] .cm-editor .cm-content ::selection,
+[data-theme="dark"] .cm-editor .cm-content .cm-line ::selection,
+[data-theme="dark"] .cm-editor .cm-content .cm-line::selection {
+  background-color: var(--redline-select) !important;
+}
+
+.cm-editor .cm-redline-del {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+.cm-editor .cm-content .cm-redline-ins {
+  text-decoration: none;
+  /* Same specificity as the fill shorthand so the 0.3em strike gap survives. */
+  margin-left: 0.3em;
+  color: inherit;
+}
+
+.cm-editor .cm-content .cm-redline-ins-ref {
+  white-space: pre-wrap;
+}
+
+.cm-editor .cm-redline-note {
+  position: absolute;
+  left: var(--redline-rail-pad, 28px);
+  right: var(--redline-rail-pad-right, 42px);
+  overflow: visible;
+  pointer-events: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  background-image: none;
+  box-shadow: none;
+  color: var(--redline-ink);
+  font-family: var(--ui-font, Inter, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
+  transform: rotate(var(--redline-tilt, 0deg));
+  transform-origin: 0 20%;
+}
+
+.cm-editor .cm-redline-note[data-person] {
+  --redline-ink: #6a3a28;
+  transform: none !important;
+  border-left: 1.5px solid #a45a2a;
+  padding-left: 8px;
+}
+
+.cm-editor .cm-redline-note[data-person] .cm-redline-note-label {
+  font-family: var(--editor-font, "Paper Mono", ui-monospace, monospace);
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.85;
+  color: #6a3a28;
+}
+
+.cm-editor .cm-redline-note-insert,
+.cm-editor .cm-redline-note[data-redline-intent="insert"] {
+  color: var(--redline-ink-insert);
+}
+
+.cm-editor .cm-redline-note-label {
+  display: block;
+  font-size: var(--redline-label-size);
+  font-weight: 500;
+  opacity: 1;
+  margin-bottom: var(--redline-note-stack);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--redline-hand, #6f6a62);
+  background: none;
+  background-image: none;
+}
+
+.cm-editor .cm-redline-note-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 40vh;
+  overflow-y: auto;
+  font-family: var(--redline-scribble);
+  font-size: var(--redline-scribble-size);
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--redline-hand, #6f6a62);
+}
+
+.cm-editor .cm-redline-note-body:empty {
+  display: none;
+}
+
+.cm-editor .cm-redline-caution {
+  margin: var(--redline-note-stack) 0 0;
+  font-family: var(--ui-font, Inter, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: color-mix(in srgb, var(--redline-ash) 55%, #2a2824);
+}
+
+.cm-editor .cm-redline-error {
+  margin: 0;
+  color: var(--redline-reject);
+  font-family: var(--redline-scribble);
+  font-size: var(--redline-scribble-size);
+}
+
+.cm-editor .cm-redline-note.cm-redline-compose {
+  transform: none;
+  color: #2a2824;
+}
+
+.cm-editor .cm-redline-ai {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.cm-editor .cm-redline-compose .cm-redline-note-label {
+  margin-bottom: 11px;
+  letter-spacing: 0.14em;
+}
+
+.cm-editor .cm-redline-compose-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55em;
+  margin-top: 2px;
+}
+
+/* The hairline dot is the anchor. This bullet sat in front of the hand. */
+.cm-editor .cm-redline-compose-mark {
+  display: none;
+}
+
+.cm-editor .cm-redline-compose-rule {
+  height: 1px;
+  margin: 10px 0 0;
+  background: color-mix(in srgb, var(--redline-ash) 55%, transparent);
+}
+
+.cm-editor .cm-redline-btn[hidden],
+.cm-editor .cm-redline-instruction[hidden],
+.cm-editor .cm-redline-compose .cm-redline-instruction[hidden] {
+  display: none;
+}
+
+.cm-editor .cm-redline-instruction {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.6em;
+  margin: 6px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  resize: none;
+  color: var(--redline-hand, #6f6a62);
+  font-family: var(--redline-scribble);
+  font-size: var(--redline-scribble-size);
+  line-height: 1.3;
+  outline: none;
+}
+
+.cm-editor .cm-redline-compose .cm-redline-instruction {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.cm-editor .cm-redline-compose .cm-redline-btn {
+  font-family: var(--editor-font, "Paper Mono", ui-monospace, monospace);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--redline-ash, #9a948c);
+  opacity: 1;
+}
+
+/* Underline is the main action. No fill, so the theme can recolor the row. */
+.cm-editor .cm-redline-compose .cm-redline-btn-primary {
+  color: var(--redline-compose-ink, #2a2723);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 1;
+}
+
+.cm-editor .cm-redline-note-actions {
+  /* Every button is led by a middot in a box this wide. See the ::before rule. */
+  --redline-sep-width: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  /* The column is narrower than three labels, so rows wrap. A button's hit box
+     is 28px on a 16px line: 12px between lines makes two lines' boxes meet and
+     never overlap. With no gap the second line's box sat on the first line's
+     labels, and a click on Accept ran Edit ask. */
+  gap: 12px 0;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--redline-hand, #6f6a62) 45%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* The compose box draws this rule itself. Don't stack it on the action border. */
+.cm-redline-compose-rule {
+  height: 1px;
+  margin-top: 8px;
+  background: color-mix(in srgb, var(--redline-hand, #6f6a62) 45%, transparent);
+}
+
+.cm-redline-compose-rule + .cm-redline-note-actions {
+  border-top: 0;
+  margin-top: 6px;
+  padding-top: 0;
+}
+
+/* Must beat the gap: 0 above. Same element carries both classes. */
+.cm-editor .cm-redline-note-actions.cm-redline-compose-actions {
+  flex-wrap: nowrap;
+  gap: 0 1.35em;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.cm-editor .cm-redline-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  /* Taller than the text, without moving the row: 6px of padding each side,
+     taken back by the margin. Keep 2 x padding equal to the row gap above. */
+  min-height: 28px;
+  margin: -6px 0;
+  padding: 6px 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--redline-hand, #6f6a62);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  opacity: 0.88;
+}
+
+/* A middot leads every button, the first one too. The row is pulled left by
+   the dot's width and clipped at its own left edge, so the dot that would
+   start a line is never seen, on the first line or after a wrap. */
+.cm-editor .cm-redline-note-actions:not(.cm-redline-compose-actions) {
+  margin-left: calc(-1 * var(--redline-sep-width));
+  clip-path: inset(-8px 0 -8px var(--redline-sep-width));
+}
+
+.cm-editor .cm-redline-note-actions .cm-redline-btn::before {
+  content: "·";
+  flex: none;
+  width: var(--redline-sep-width);
+  text-align: center;
+  color: var(--redline-hand, #6f6a62);
+  opacity: 0.7;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Composer row: Ask Alkuin and Leave note on the left, Cancel at the rail's
+   far pad. No middots. Markup stays cm-redline-btn. */
+.cm-editor .cm-redline-compose-actions .cm-redline-btn::before {
+  content: none;
+}
+
+.cm-editor .cm-redline-compose-actions .cm-redline-btn:last-child {
+  margin-left: auto;
+}
+
+/* ASK ALKUIN is 10 monospace glyphs. The return glyph keeps its own short line.
+   9 gaps of 0.15em sit inside the word underline; the 10th is the space before ↵. */
+.cm-editor .cm-redline-compose-actions .cm-redline-btn-primary {
+  text-decoration: none;
+  background-image:
+    linear-gradient(currentColor, currentColor), linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-origin: content-box;
+  background-size:
+    calc(10ch + 1.35em) 1px,
+    0.65em 1px;
+  background-position:
+    left bottom 1px,
+    left calc(10ch + 1.35em + 0.65em) bottom 1px;
+}
+
+.cm-editor .cm-redline-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.cm-editor .cm-redline-btn[data-redline-action="accept"] {
+  color: var(--redline-accept);
+}
+
+.cm-editor .cm-redline-btn[data-redline-action="reject"] {
+  color: var(--redline-reject);
+}
+
+.cm-editor .cm-redline-saved {
+  margin: 0;
+  font-family: var(--ui-font, Inter, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: color-mix(in srgb, var(--redline-ash) 55%, #2a2824);
+}
+
+.cm-redline-ink-tick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15em;
+  height: 1.15em;
+  margin-left: 0.2em;
+  background: none;
+  color: var(--redline-accept);
+  vertical-align: middle;
+  pointer-events: none;
+  animation: redline-ink-tick 720ms ease-out forwards;
+}
+
+.cm-redline-ink-tick svg {
+  display: block;
+  overflow: visible;
+}
+
+.cm-redline-ink-tick path {
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  animation: redline-ink-paint 240ms ease-out forwards;
+}
+
+@keyframes redline-ink-paint {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes redline-ink-tick {
+  0% {
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  48% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.cm-redline-ink-tick.is-shot {
+  animation: none;
+  opacity: 1;
+}
+
+.cm-redline-ink-tick.is-shot path {
+  animation: none;
+  stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-redline-ink-tick,
+  .cm-redline-ink-tick path {
+    animation-duration: 1ms !important;
+  }
+}

@@ -1,0 +1,18 @@
+/* Paper Mono, SIL OFL 1.1, vendored from paper-design/paper-mono.
+   The face and OFL.txt live in public/fonts/paper-mono/ so the built app
+   carries the license next to the font. Nothing fetches a font at runtime. */
+
+@font-face {
+  font-family: "Paper Mono";
+  src: url("/fonts/paper-mono/PaperMono-wght.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Stylistic sets stay off. ss02 widens m/w and ss03 narrows the space.
+   macOS WKWebView can paint those advances while Range measurement, which
+   places the caret, keeps the default ones. The gap grows per substituted
+   glyph. Upstream writer.computer sets none of font-feature-settings,
+   font-kerning, text-rendering, or font-variant-ligatures on .cm-content.
+   Inline code and fenced code still turn calt, kerning, and ligatures off. */

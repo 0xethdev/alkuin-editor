@@ -1,0 +1,104 @@
+/* Throwaway invite preview. The paper pane color is the desk's own rule. */
+
+.invite-preview {
+  background: var(--bg-base);
+  font-family: "Paper Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.invite-sidebar {
+  border-right: 1px solid var(--line-subtler);
+}
+
+.invite-preview .invite-paper-host {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.invite-preview .cm-editor > .cm-scroller > .cm-content {
+  padding-top: 2.25rem;
+  padding-bottom: 4.5rem;
+}
+
+/* The desk scroller clips to its own box. Stacked cards that pass the last
+   line were cut off, so the preview lets the margin paint and gives each
+   passage room for its card. */
+.invite-preview .cm-editor .cm-scroller {
+  clip-path: none !important;
+}
+
+.invite-preview[data-screen="margin"] .cm-editor .cm-line:has(> br:only-child) {
+  line-height: 6.75rem;
+}
+
+.invite-preview[data-screen="margin"] .cm-editor > .cm-scroller > .cm-content {
+  padding-bottom: 7.5rem;
+}
+
+.invite-preview .invite-paper-host .cm-editor {
+  background: transparent;
+}
+
+.invite-action {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: color-mix(in srgb, var(--redline-ash, #9a948c) 35%, #2a2824);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.invite-actions .invite-action + .invite-action::before {
+  content: "|";
+  margin: 0 0.7em 0 0.55em;
+  color: var(--redline-ash, #9a948c);
+  opacity: 0.55;
+}
+
+.invite-send {
+  appearance: none;
+  margin-left: auto;
+  border: 1px solid color-mix(in srgb, #2c2824 28%, transparent);
+  background: transparent;
+  color: #2c2824;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.invite-send-quiet {
+  margin-left: 0;
+  border-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  color: var(--fg-base);
+}
+
+.invite-preview[data-variant="a"] .cm-redline-note[data-author="maria"] {
+  --redline-ink: #6a3a28;
+  transform: none !important;
+  border-left: 1.5px solid #a45a2a;
+  padding-left: 8px;
+}
+
+.invite-preview[data-variant="a"] .cm-redline-note[data-author="maria"] .cm-redline-note-label {
+  font-family: "Paper Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.8;
+  color: #6a3a28;
+}
+
+.invite-preview .cm-redline-gutter-stub[data-redline-stub^="maria"] {
+  background: #a45a2a;
+}

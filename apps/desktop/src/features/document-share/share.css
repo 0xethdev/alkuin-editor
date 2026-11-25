@@ -1,0 +1,44 @@
+.invite-footer {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  margin: 0;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--fg-base) 16%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg-base, #141312);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.15;
+  cursor: pointer;
+}
+
+.invite-footer:hover {
+  background: color-mix(in srgb, var(--fg-base) 6%, transparent);
+}
+
+.invite-action,
+.invite-send-quiet {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #2c2824;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.invite-send-quiet {
+  margin-left: 0;
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+  color: var(--fg-base, #2c2824);
+}
