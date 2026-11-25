@@ -94,7 +94,9 @@ async function load(
   };
   try {
     let version: { webSocketDebuggerUrl: string } | null = null;
-    for (let i = 0; i < 50 && !version; i++) {
+    // A cold Chrome on a busy machine can take well over five seconds to listen. The
+    // test's own timeout is the real limit.
+    for (let i = 0; i < 300 && !version; i++) {
       try {
         const res = await fetch(`http://127.0.0.1:${port}/json/version`);
         if (res.ok) version = (await res.json()) as { webSocketDebuggerUrl: string };
