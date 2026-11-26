@@ -1104,12 +1104,14 @@ describe("right-gutter ink chrome", () => {
       css.indexOf("}", composeActionsStart) + 1,
     );
     expect(composeActions).toMatch(/flex-wrap:\s*nowrap/);
-    const primaryStart = css.indexOf(".cm-editor .cm-redline-compose .cm-redline-btn-primary {");
+    // One primary rule for every margin row: a drawn line, so the theme can recolor it.
+    const primaryStart = css.indexOf(".cm-editor .cm-redline-btn-primary {");
+    expect(primaryStart).toBeGreaterThan(-1);
     const primary = css.slice(primaryStart, css.indexOf("}", primaryStart) + 1);
-    expect(primary).toMatch(/text-decoration:\s*underline/);
-    expect(primary).not.toMatch(/background/);
-    expect(css).toMatch(/content:\s*"·"/);
-    expect(css).not.toMatch(/compose-actions \.cm-redline-btn \+ \.cm-redline-btn::before/);
+    expect(primary).toMatch(/background-image:\s*linear-gradient\(currentColor, currentColor\)/);
+    expect(primary).not.toMatch(/background-color/);
+    expect(css).not.toMatch(/\.cm-redline-compose \.cm-redline-btn-primary/);
+    expect(css).not.toMatch(/\.cm-redline-btn::before/);
     expect(css).toMatch(/--redline-note-stack:\s*2px/);
     expect(noteRule).toMatch(/--ui-font/);
     expect(noteRule).not.toMatch(/Rock Salt/);

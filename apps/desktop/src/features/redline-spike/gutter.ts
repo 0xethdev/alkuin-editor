@@ -303,7 +303,7 @@ export function renderRedlineNote(view: EditorView, note: RedlineNote): HTMLElem
     actions.append(
       inkButton(
         view,
-        "cm-redline-btn",
+        "cm-redline-btn cm-redline-btn-primary",
         SIGN_IN_LABEL,
         () => {
           openAccountSignIn();
@@ -367,7 +367,7 @@ export function renderRedlineNote(view: EditorView, note: RedlineNote): HTMLElem
       actions.append(
         inkButton(
           view,
-          "cm-redline-btn",
+          "cm-redline-btn cm-redline-btn-primary",
           SHARE_CHANGES_LABEL,
           () => {
             handlers.publish(view, note.id);
@@ -508,7 +508,7 @@ export function renderRedlineNote(view: EditorView, note: RedlineNote): HTMLElem
       ),
       inkButton(
         view,
-        "cm-redline-btn",
+        "cm-redline-btn cm-redline-btn-aside",
         COMPOSE_CANCEL_LABEL,
         () => {
           handlers.reject(view, note.id);
@@ -561,7 +561,7 @@ export function renderRedlineNote(view: EditorView, note: RedlineNote): HTMLElem
       actions.append(
         inkButton(
           view,
-          "cm-redline-btn",
+          "cm-redline-btn cm-redline-btn-primary",
           "Accept",
           () => {
             handlers.accept(view, note.id);
@@ -586,7 +586,7 @@ export function renderRedlineNote(view: EditorView, note: RedlineNote): HTMLElem
       actions.append(
         inkButton(
           view,
-          "cm-redline-btn",
+          "cm-redline-btn cm-redline-btn-aside",
           "Edit ask",
           () => {
             handlers.editAsk(view, note.id);
@@ -600,7 +600,7 @@ export function renderRedlineNote(view: EditorView, note: RedlineNote): HTMLElem
     actions.append(
       inkButton(
         view,
-        "cm-redline-btn",
+        "cm-redline-btn cm-redline-btn-primary",
         TRY_AGAIN_LABEL,
         () => {
           handlers.ask(view, note.id, note.instruction ?? undefined);

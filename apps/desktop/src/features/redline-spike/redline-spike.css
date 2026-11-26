@@ -323,41 +323,19 @@
   margin-top: 0;
 }
 
-.cm-editor .cm-redline-compose .cm-redline-btn {
-  font-family: var(--editor-font, "Paper Mono", ui-monospace, monospace);
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--redline-ash, #9a948c);
-  opacity: 1;
-}
-
-/* Underline is the main action. No fill, so the theme can recolor the row. */
-.cm-editor .cm-redline-compose .cm-redline-btn-primary {
-  color: var(--redline-compose-ink, #2a2723);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  opacity: 1;
-}
-
 .cm-editor .cm-redline-note-actions {
-  /* Every button is led by a middot in a box this wide. See the ::before rule. */
-  --redline-sep-width: 20px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  /* The column is narrower than three labels, so rows wrap. A button's hit box
-     is 28px on a 16px line: 12px between lines makes two lines' boxes meet and
-     never overlap. With no gap the second line's box sat on the first line's
-     labels, and a click on Accept ran Edit ask. */
-  gap: 12px 0;
+  /* Accept, Reject and Edit ask fit one line of the 198px note column at a
+     1em gap. A longer row (a person's thread, the plan offers) wraps. A
+     button's hit box is 28px on a 16px line: 12px between lines makes two
+     lines' boxes meet and never overlap. With no gap the second line's box
+     sat on the first line's labels, and a click on Accept ran Edit ask. */
+  gap: 12px 1em;
   margin-top: 8px;
-  padding-top: 6px;
+  padding-top: 8px;
   border-top: 1px solid color-mix(in srgb, var(--redline-hand, #6f6a62) 45%, transparent);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
 }
 
 /* The compose box draws this rule itself. Don't stack it on the action border. */
@@ -394,73 +372,43 @@
   border-radius: 0;
   background: none;
   box-shadow: none;
-  color: var(--redline-hand, #6f6a62);
+  color: var(--redline-ash, #9a948c);
+  /* Every margin button looks like the composer's. The button sets its own
+     case and tracking: when the row's tracking reached the button (the Mac
+     webview lets it), Edit ask no longer fit and wrapped onto its own line. */
   font: inherit;
+  font-family: var(--editor-font, "Paper Mono", ui-monospace, monospace);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
-  opacity: 0.88;
 }
 
-/* A middot leads every button, the first one too. The row is pulled left by
-   the dot's width and clipped at its own left edge, so the dot that would
-   start a line is never seen, on the first line or after a wrap. */
-.cm-editor .cm-redline-note-actions:not(.cm-redline-compose-actions) {
-  margin-left: calc(-1 * var(--redline-sep-width));
-  clip-path: inset(-8px 0 -8px var(--redline-sep-width));
-}
-
-.cm-editor .cm-redline-note-actions .cm-redline-btn::before {
-  content: "·";
-  flex: none;
-  width: var(--redline-sep-width);
-  text-align: center;
-  color: var(--redline-hand, #6f6a62);
-  opacity: 0.7;
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-/* Composer row: Ask Alkuin and Leave note on the left, Cancel at the rail's
-   far pad. No middots. Markup stays cm-redline-btn. */
-.cm-editor .cm-redline-compose-actions .cm-redline-btn::before {
-  content: none;
-}
-
-.cm-editor .cm-redline-compose-actions .cm-redline-btn:last-child {
-  margin-left: auto;
-}
-
-/* ASK ALKUIN is 10 monospace glyphs. The return glyph keeps its own short line.
-   9 gaps of 0.15em sit inside the word underline; the 10th is the space before ↵. */
-.cm-editor .cm-redline-compose-actions .cm-redline-btn-primary {
-  text-decoration: none;
-  background-image:
-    linear-gradient(currentColor, currentColor), linear-gradient(currentColor, currentColor);
+/* The main action is ink with a line under it: Ask Alkuin, Accept, Sign in.
+   The line is drawn, so it stops at the last letter instead of running on
+   under its tracking. No fill, so the theme can recolor the row. */
+.cm-editor .cm-redline-btn-primary {
+  color: var(--redline-compose-ink, #2a2723);
+  background-image: linear-gradient(currentColor, currentColor);
   background-repeat: no-repeat;
   background-origin: content-box;
-  background-size:
-    calc(10ch + 1.35em) 1px,
-    0.65em 1px;
-  background-position:
-    left bottom 1px,
-    left calc(10ch + 1.35em + 0.65em) bottom 1px;
+  background-size: calc(100% - 0.15em) 1px;
+  background-position: left bottom 1px;
+}
+
+/* Cancel in the composer, Edit ask on a suggestion: at the far end of the
+   line, away from the main action. */
+.cm-editor .cm-redline-btn-aside {
+  margin-left: auto;
 }
 
 .cm-editor .cm-redline-btn:disabled {
   opacity: 0.35;
   cursor: default;
-}
-
-.cm-editor .cm-redline-btn[data-redline-action="accept"] {
-  color: var(--redline-accept);
-}
-
-.cm-editor .cm-redline-btn[data-redline-action="reject"] {
-  color: var(--redline-reject);
 }
 
 .cm-editor .cm-redline-saved {
