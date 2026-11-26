@@ -8,9 +8,14 @@ vi.mock("@tauri-apps/api/core", () => ({
 }));
 
 import { invoke } from "@tauri-apps/api/core";
+import { AGE_BLOCKED } from "../src/lib/age-gate";
 import {
   ACCOUNT_MENU_ENABLED,
   ACCOUNT_MENU_LABEL,
+  CREATE_ACCOUNT_LABEL,
+  CREATE_ACCOUNT_PROMPT,
+  TO_CREATE_ACCOUNT,
+  TO_SIGN_IN,
   BILLING_PORTAL_ENABLED,
   CODE_DIFFERENT_EMAIL,
   CODE_ENTRY_ERROR,
@@ -160,10 +165,12 @@ describe("full-screen sign-in", () => {
     expect(gate).not.toContain("justWrite");
     expect(screen).not.toMatch(/just write|write only/i);
     expect(shell).toContain("editorUnlocked");
-    // No question before the code: the date step comes after it, only for a new account.
+    // Two doors: Create account sends the date with the email, before any code.
+    // Sign in asks nothing but the email. A held sign-in still has its date step.
     expect(shell).not.toMatch(/continueWithAge|accountSignInKnown|AgeGate/);
-    expect(shell).toContain("void gate.submitAge(birthDate)");
-    expect(shell).toContain('if (result === "age_blocked") {');
+    expect(shell).toContain("void gate.register(birthDate).then(keepRefusal)");
+    expect(shell).toContain("void gate.submitAge(birthDate).then(keepRefusal)");
+    expect(shell).toContain('if (result !== "age_blocked") return;');
     expect(reduceSignIn("code", { type: "age-check" })).toBe("age");
     expect(reduceSignIn("age", { type: "different-email" })).toBe("welcome");
     expect(editorUnlocked(true, "age")).toBe(false);
@@ -305,7 +312,7 @@ describe("full-screen sign-in", () => {
     }
     const send = readSrc("../src/components/use-sign-in-gate.ts");
     const sendCode = send.slice(
-      send.indexOf("async function sendCode"),
+      send.indexOf("async function requestCode"),
       send.indexOf("async function submitCode"),
     );
     const caught = sendCode.slice(sendCode.indexOf("} catch"));
@@ -324,6 +331,19 @@ describe("full-screen sign-in", () => {
     const normal = shown(signInMarkup("welcome"));
     expect(normal).toContain(EMAIL_PROMPT);
     expect(normal).not.toContain("couldn't send your code");
+    // The two doors: Sign in asks only the email; Create account asks the date too.
+    expect(normal).toContain(TO_CREATE_ACCOUNT);
+    expect(normal).not.toContain('type="date"');
+    const create = shown(signInMarkup("welcome", { door: "create" }));
+    expect(create).toContain(CREATE_ACCOUNT_PROMPT);
+    expect(create).toContain('type="date"');
+    expect(create).toContain(`>${CREATE_ACCOUNT_LABEL}<`);
+    expect(create).toContain(TO_SIGN_IN);
+    const blocked = shown(signInMarkup("welcome", { door: "create", age: "blocked" }));
+    expect(blocked).toContain(AGE_BLOCKED);
+    expect(blocked).not.toContain('type="date"');
+    // A device that answered under age still signs in to an existing account.
+    expect(shown(signInMarkup("welcome", { age: "blocked" }))).toContain(EMAIL_PROMPT);
   });
 
   test("Sign in while already signed in does not open the welcome screen", () => {

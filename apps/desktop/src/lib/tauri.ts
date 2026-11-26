@@ -668,8 +668,18 @@ export interface AccountStatus {
 }
 
 /** Ask Auth to send a sign-in code. The code stays in the mailbox. */
+/** Sign in: a code to an account. An address with no account rejects with `no_account`. */
 export function accountSignInStart(email: string): Promise<void> {
   return invoke("account_sign_in_start", { email });
+}
+
+/**
+ * Create account: the email and the date of birth, then a registration code.
+ * Rejects with `age_blocked` for an under-age date and with `account_exists`
+ * for an address that has an account.
+ */
+export function accountRegisterStart(email: string, birthDate: string): Promise<void> {
+  return invoke("account_register_start", { email, birthDate });
 }
 
 /**

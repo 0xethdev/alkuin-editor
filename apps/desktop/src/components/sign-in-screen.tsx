@@ -3,8 +3,12 @@ import {
   CODE_DIFFERENT_EMAIL,
   CODE_ENTRY_RESEND,
   CODE_SEND_FAILED,
+  CREATE_ACCOUNT_LABEL,
+  CREATE_ACCOUNT_PROMPT,
   EMAIL_PROMPT,
   SIGN_IN_LABEL,
+  TO_CREATE_ACCOUNT,
+  TO_SIGN_IN,
   WELCOME_BUTTON,
   codeEntryPrompt,
   codeSendFailedParts,
@@ -21,11 +25,15 @@ import {
   type CodeDigits,
 } from "@/lib/sign-in-code";
 import { AGE_BLOCKED, AGE_LABEL, AGE_STEP_PROMPT, type AgeState } from "@/lib/age-gate";
+import type { SignInDoor } from "@/lib/account-gate";
 import { AgreeLine } from "@/lib/legal-links";
 import "./sign-in-screen.css";
 
 export function SignInScreen({
   step,
+  door = "sign-in",
+  onDoor = () => {},
+  onRegister = () => {},
   age = "ok",
   birthDate = "",
   onBirthDate = () => {},
@@ -43,7 +51,12 @@ export function SignInScreen({
 }: {
   /** `age`: the code matched an address with no account, so the date of birth is asked. */
   step: "welcome" | "code" | "age";
-  /** "blocked": this device answered under age within the day, so the date step refuses at once. */
+  /** Which form the welcome step shows: Sign in, or Create account with the date of birth. */
+  door?: SignInDoor;
+  onDoor?: (door: SignInDoor) => void;
+  /** Create account's submit: the email and the date of birth. */
+  onRegister?: () => void;
+  /** "blocked": this device answered under age within the day, so Create account and the date step refuse at once. */
   age?: AgeState;
   birthDate?: string;
   onBirthDate?: (value: string) => void;
@@ -117,11 +130,26 @@ export function SignInScreen({
               {CODE_DIFFERENT_EMAIL}
             </button>
           </form>
+        ) : step === "welcome" && door === "create" && age === "blocked" ? (
+          <>
+            <p className="prompt" role="alert">
+              {AGE_BLOCKED}
+            </p>
+            <button
+              className="quiet"
+              type="button"
+              onClick={() => onDoor("sign-in")}
+              disabled={busy}
+            >
+              {TO_SIGN_IN}
+            </button>
+          </>
         ) : step === "welcome" ? (
           <form
             onSubmit={(event) => {
               event.preventDefault();
-              onContinue();
+              if (door === "create") onRegister();
+              else onContinue();
             }}
           >
             {error === CODE_SEND_FAILED ? (
@@ -130,7 +158,7 @@ export function SignInScreen({
               </p>
             ) : (
               <label className="prompt" htmlFor="sign-in-email">
-                {EMAIL_PROMPT}
+                {door === "create" ? CREATE_ACCOUNT_PROMPT : EMAIL_PROMPT}
               </label>
             )}
             <input
@@ -145,16 +173,43 @@ export function SignInScreen({
               disabled={busy}
               onChange={(event) => onEmail(event.target.value)}
             />
+            {door === "create" ? (
+              <>
+                <label className="prompt follow" htmlFor="sign-in-birth">
+                  {AGE_LABEL}
+                </label>
+                <input
+                  id="sign-in-birth"
+                  className="field"
+                  type="date"
+                  autoComplete="bday"
+                  value={birthDate}
+                  disabled={busy}
+                  onChange={(event) => onBirthDate(event.target.value)}
+                />
+              </>
+            ) : null}
             {error && error !== CODE_SEND_FAILED ? (
               <p className="error" role="alert">
                 {error}
               </p>
             ) : null}
             <button className="action" type="submit" disabled={busy}>
-              {WELCOME_BUTTON}
+              {door === "create" ? CREATE_ACCOUNT_LABEL : WELCOME_BUTTON}
+            </button>
+            <button
+              className="quiet"
+              type="button"
+              onClick={() => onDoor(door === "create" ? "sign-in" : "create")}
+              disabled={busy}
+            >
+              {door === "create" ? TO_SIGN_IN : TO_CREATE_ACCOUNT}
             </button>
             <p className="legal">
-              <AgreeLine action={WELCOME_BUTTON} linkClassName="legal-link" />
+              <AgreeLine
+                action={door === "create" ? CREATE_ACCOUNT_LABEL : WELCOME_BUTTON}
+                linkClassName="legal-link"
+              />
             </p>
           </form>
         ) : (

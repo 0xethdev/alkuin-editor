@@ -2,10 +2,10 @@
 export const SOURCE_URL = "https://github.com/0xethdev/alkuin-editor";
 
 /**
- * False until that repository is open to the public. While it is false, Preferences
- * shows the licence line and no link, so a release cannot ship a dead one.
+ * True now that the repository is public. While it is false, Preferences shows the
+ * licence line and no link, so a release cannot ship a dead one.
  */
-export const SOURCE_LIVE = false;
+export const SOURCE_LIVE = true;
 
 /** Under the Legal links: the licence, that it lets you share and change, and no warranty. */
 export const LICENCE_LINE =

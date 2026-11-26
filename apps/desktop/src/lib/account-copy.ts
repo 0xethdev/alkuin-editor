@@ -182,6 +182,14 @@ export function overageDollars(saved: number | null, fallback: number | null): n
 }
 
 export const EMAIL_PROMPT = "Enter your email.";
+/** The two doors. Not yet through Copy. */
+export const CREATE_ACCOUNT_LABEL = "Create account";
+export const CREATE_ACCOUNT_PROMPT = "Create your Alkuin account.";
+export const TO_CREATE_ACCOUNT = "New to Alkuin? Create an account";
+export const TO_SIGN_IN = "Already have an account? Sign in";
+export const NO_ACCOUNT_LINE = "No Alkuin account uses this email. Check it, or create an account.";
+export const ACCOUNT_EXISTS_LINE =
+  "You already have an Alkuin account with this email. Sign in instead.";
 export const EMAIL_SEND = "Send code";
 export const EMAIL_INVALID = "Enter an email address.";
 
@@ -294,6 +302,8 @@ export function deleteAccountConfirmText(): string {
 
 const CODE_MESSAGES: Record<string, string> = {
   bad_code: CODE_ENTRY_ERROR,
+  no_account: NO_ACCOUNT_LINE,
+  account_exists: ACCOUNT_EXISTS_LINE,
   age_required: AGE_INVALID,
   age_blocked: AGE_BLOCKED,
   expired: CODE_ENTRY_EXPIRED,

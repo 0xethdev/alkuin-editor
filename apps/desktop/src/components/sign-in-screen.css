@@ -116,6 +116,11 @@
   color: var(--color-quiet);
 }
 
+/* A second field's label, below the first field. */
+.sheet-a .prompt.follow {
+  margin-top: var(--space-4);
+}
+
 .sheet-a .prompt a,
 .sheet-a .error a {
   color: inherit;

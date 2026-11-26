@@ -19,7 +19,7 @@ import { headingDecorations } from "@/components/editor-area/heading-decorations
 import { selectionBubble } from "@/components/editor-area/selection-bubble";
 import { blankDraftPromise, titleAltitudeHighlight } from "@/components/editor-area/type-altitude";
 import { SignInScreen } from "@/components/sign-in-screen";
-import { CODE_ENTRY_ERROR } from "@/lib/account-copy";
+import { ACCOUNT_EXISTS_LINE, CODE_ENTRY_ERROR, NO_ACCOUNT_LINE } from "@/lib/account-copy";
 import { agentCard } from "@/features/agent-proposal/cards";
 import { openTagDot } from "@/features/note-mention/desk";
 import "@/fonts/paper-mono.css";
@@ -252,7 +252,28 @@ if (shot === "margin") {
     .catch((error: unknown) => {
       document.body.dataset.shotError = error instanceof Error ? error.message : String(error);
     });
-} else if (shot === "sign-in-welcome" || shot === "sign-in-code" || shot === "sign-in-code-error") {
+} else if (
+  shot === "sign-in-welcome" ||
+  shot === "sign-in-no-account" ||
+  shot === "sign-in-create" ||
+  shot === "sign-in-account-exists" ||
+  shot === "sign-in-code" ||
+  shot === "sign-in-code-error"
+) {
+  // The welcome step's two doors, and the line each door shows for the other.
+  const welcome =
+    shot === "sign-in-welcome" ||
+    shot === "sign-in-no-account" ||
+    shot === "sign-in-create" ||
+    shot === "sign-in-account-exists";
+  const door =
+    shot === "sign-in-create" || shot === "sign-in-account-exists" ? "create" : "sign-in";
+  const welcomeError =
+    shot === "sign-in-no-account"
+      ? NO_ACCOUNT_LINE
+      : shot === "sign-in-account-exists"
+        ? ACCOUNT_EXISTS_LINE
+        : null;
   document.documentElement.style.width = "1280px";
   document.documentElement.style.height = "800px";
   document.body.style.width = "1280px";
@@ -262,9 +283,11 @@ if (shot === "margin") {
   document.body.append(root);
   createRoot(root).render(
     createElement(SignInScreen, {
-      step: shot === "sign-in-welcome" ? "welcome" : "code",
-      email: shot === "sign-in-welcome" ? "" : "you@example.com",
-      error: shot === "sign-in-code-error" ? CODE_ENTRY_ERROR : null,
+      step: welcome ? "welcome" : "code",
+      door,
+      birthDate: shot === "sign-in-account-exists" ? "1990-05-17" : "",
+      email: shot === "sign-in-welcome" || shot === "sign-in-create" ? "" : "you@example.com",
+      error: shot === "sign-in-code-error" ? CODE_ENTRY_ERROR : welcomeError,
       busy: false,
       resendIn: 0,
       initialCode: shot === "sign-in-code-error" ? "48219037" : "",

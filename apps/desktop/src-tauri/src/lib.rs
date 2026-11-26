@@ -704,6 +704,7 @@ pub fn run() {
             commands::history::history_delete_project,
             commands::redline::redline_propose,
             commands::account::account_sign_in_start,
+            commands::account::account_register_start,
             commands::account::account_sign_in_finish,
             commands::account::account_stored_session,
             commands::account::account_status,

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { editorUnlocked } from "@/lib/account-gate";
+import { editorUnlocked, type SignInDoor } from "@/lib/account-gate";
 import { AGE_INVALID, ageAnswer, ageState, rememberUnderAge, type AgeState } from "@/lib/age-gate";
 import { SignInScreen } from "./sign-in-screen";
 import { useSignInGate } from "./use-sign-in-gate";
@@ -10,30 +10,51 @@ export function SignInGate({ children }: { children: ReactNode }) {
   const [age, setAge] = useState<AgeState>(() => ageState());
   const [birthDate, setBirthDate] = useState("");
   const [ageError, setAgeError] = useState<string | null>(null);
+  const [door, setDoor] = useState<SignInDoor>("sign-in");
   if (!gate.ready) return null;
   if (editorUnlocked(gate.hasSession, gate.step)) return children;
   const step = gate.step === "desk" ? "welcome" : gate.step;
 
-  /** The date step. A date that is not one is caught here; the server decides the rest. */
-  function submitAge() {
+  /** A date that is not one is caught here; the server decides the rest. */
+  function readableDate(): boolean {
     if (ageAnswer(birthDate, new Date()) === "invalid") {
       setAgeError(AGE_INVALID);
-      return;
+      return false;
     }
     setAgeError(null);
-    void gate.submitAge(birthDate).then((result) => {
-      // The server refused the date and erased the held sign-in.
-      if (result === "age_blocked") {
-        rememberUnderAge();
-        setAge("blocked");
-      }
-    });
+    return true;
+  }
+
+  /** An under-age answer from the server blocks sign-up on this device for a day. */
+  function keepRefusal(result: string | undefined) {
+    if (result !== "age_blocked") return;
+    rememberUnderAge();
+    setAge("blocked");
+  }
+
+  /** Create account: the date of birth goes with the email, before any code. */
+  function register() {
+    if (age === "blocked" || !readableDate()) return;
+    void gate.register(birthDate).then(keepRefusal);
+  }
+
+  /** The date step, for a sign-in held after its code. */
+  function submitAge() {
+    if (!readableDate()) return;
+    void gate.submitAge(birthDate).then(keepRefusal);
   }
 
   return (
     <SignInScreen
-      key={step}
+      key={`${step}:${door}`}
       step={step}
+      door={door}
+      onDoor={(next) => {
+        setDoor(next);
+        setAgeError(null);
+        gate.differentEmail();
+      }}
+      onRegister={register}
       age={age}
       birthDate={birthDate}
       onBirthDate={(value) => {
@@ -46,7 +67,7 @@ export function SignInGate({ children }: { children: ReactNode }) {
       resendIn={gate.resendIn}
       onEmail={gate.setEmail}
       onContinue={() => void gate.sendCode()}
-      onResend={() => void gate.sendCode()}
+      onResend={() => void gate.resend()}
       onDifferentEmail={() => {
         setAgeError(null);
         gate.differentEmail();

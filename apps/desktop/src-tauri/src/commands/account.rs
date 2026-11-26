@@ -830,6 +830,18 @@ fn send_failure(status: u16, body: &Value, retry_after: Option<&str>) -> AppErro
     if code == "email_address_not_authorized" {
         return AppError::Account("email_address_not_authorized".into());
     }
+    // The server could not reach its own services, or could not place this request.
+    if code == UNREACHABLE || code == "no_client_ip" {
+        return AppError::Account(code.into());
+    }
+    // The two doors: Sign in to no account, Create account for one that exists,
+    // and Create account's date of birth.
+    if matches!(
+        code,
+        "no_account" | "account_exists" | "age_required" | "age_blocked"
+    ) {
+        return AppError::Account(code.into());
+    }
     if status == 429 || code == "over_email_send_rate_limit" || code == "over_request_rate_limit" {
         let name = if code == "over_request_rate_limit" {
             "over_request_rate_limit"
@@ -944,24 +956,68 @@ async fn failure_body(response: reqwest::Response) -> (u16, Value, Option<String
     (status, body, retry)
 }
 
+/// Sign in: the server sends an account its sign-in code. An address with no
+/// account answers `no_account`.
 async fn sign_in_start(
     client: &reqwest::Client,
     base: &str,
     anon_key: &str,
     email: &str,
 ) -> Result<(), AppError> {
-    let email = email.trim();
-    if email.is_empty() {
+    code_request(
+        client,
+        base,
+        anon_key,
+        "sign-in/start",
+        email,
+        serde_json::json!({ "email": email.trim() }),
+    )
+    .await
+}
+
+/// Create account: the email and the date of birth, then a registration code.
+/// The server answers `age_blocked` for an under-age date and
+/// `account_exists` for an address that has an account.
+async fn register_start(
+    client: &reqwest::Client,
+    base: &str,
+    anon_key: &str,
+    email: &str,
+    birth_date: &str,
+) -> Result<(), AppError> {
+    code_request(
+        client,
+        base,
+        anon_key,
+        "register/start",
+        email,
+        serde_json::json!({ "email": email.trim(), "birth_date": birth_date.trim() }),
+    )
+    .await
+}
+
+async fn code_request(
+    client: &reqwest::Client,
+    base: &str,
+    anon_key: &str,
+    route: &str,
+    email: &str,
+    payload: Value,
+) -> Result<(), AppError> {
+    if email.trim().is_empty() {
         return Err(AppError::Account("validation_failed".into()));
     }
-    let response = client
-        .post(format!("{base}/auth/v1/otp"))
-        .header("apikey", anon_key)
-        .header("Authorization", format!("Bearer {anon_key}"))
-        .json(&serde_json::json!({ "email": email, "create_user": true }))
-        .send()
-        .await
-        .map_err(|_| AppError::Account(UNREACHABLE.into()))?;
+    let response = accounts_request(
+        client,
+        reqwest::Method::POST,
+        &accounts_url(base, route),
+        anon_key,
+        anon_key,
+    )
+    .json(&payload)
+    .send()
+    .await
+    .map_err(|_| AppError::Account(UNREACHABLE.into()))?;
     if response.status().is_success() {
         return Ok(());
     }
@@ -975,6 +1031,11 @@ async fn sign_in_start(
 #[derive(Debug, Clone, Copy)]
 enum SignInProof<'a> {
     Code(&'a str),
+    /// A registration code from Create account, with the date of birth it was asked with.
+    Registration {
+        code: &'a str,
+        birth_date: &'a str,
+    },
     Held {
         ticket: &'a str,
         birth_date: &'a str,
@@ -992,6 +1053,11 @@ async fn sign_in_finish(
     let email = email.trim().to_lowercase();
     let payload = match proof {
         SignInProof::Code(code) => serde_json::json!({ "email": email, "code": code.trim() }),
+        SignInProof::Registration { code, birth_date } => serde_json::json!({
+            "email": email,
+            "code": code.trim(),
+            "birth_date": birth_date.trim(),
+        }),
         // A new account's second step sends the ticket from its code instead of a code.
         SignInProof::Held { ticket, birth_date } => serde_json::json!({
             "email": email,
@@ -1211,6 +1277,12 @@ pub async fn account_sign_in_start(email: String) -> Result<(), AppError> {
 }
 
 #[tauri::command]
+pub async fn account_register_start(email: String, birth_date: String) -> Result<(), AppError> {
+    let (base, anon) = supabase_from_env()?;
+    register_start(&accounts_client()?, &base, &anon, &email, &birth_date).await
+}
+
+#[tauri::command]
 pub async fn account_sign_in_finish(
     app: tauri::AppHandle,
     email: String,
@@ -1219,10 +1291,12 @@ pub async fn account_sign_in_finish(
     age_ticket: Option<String>,
 ) -> Result<AccountStatus, AppError> {
     let (base, anon) = supabase_from_env()?;
+    let birth_date = birth_date.as_deref().map(str::trim).unwrap_or("");
     let proof = match age_ticket.as_deref().map(str::trim) {
-        Some(ticket) if !ticket.is_empty() => SignInProof::Held {
-            ticket,
-            birth_date: birth_date.as_deref().unwrap_or(""),
+        Some(ticket) if !ticket.is_empty() => SignInProof::Held { ticket, birth_date },
+        _ if !birth_date.is_empty() => SignInProof::Registration {
+            code: &code,
+            birth_date,
         },
         _ => SignInProof::Code(&code),
     };
@@ -1915,25 +1989,114 @@ mod tests {
     }
 
     #[test]
-    fn auth_otp_does_not_pin_a_function_region() {
-        let (base, captured) = spawn_status(200, "{}");
+    fn a_code_is_asked_of_the_accounts_function_with_only_the_address() {
+        let (base, captured) = spawn_status(200, r#"{"sent":true}"#);
         let client = accounts_client().unwrap();
         block_on(sign_in_start(
             &client,
             &base,
             "anon-public",
-            "ada@example.com",
+            " ada@example.com ",
         ))
         .unwrap();
         let request = captured
             .lock()
             .unwrap_or_else(|poison| poison.into_inner())
             .clone();
-        assert!(request.contains("/auth/v1/otp"), "{request}");
         assert!(
-            !request.to_ascii_lowercase().contains("x-region"),
+            request.starts_with("POST /functions/v1/accounts/sign-in/start "),
             "{request}"
         );
+        assert!(
+            request
+                .to_ascii_lowercase()
+                .contains("x-region: eu-central-1"),
+            "{request}"
+        );
+        assert!(
+            request.contains(r#"{"email":"ada@example.com"}"#),
+            "{request}"
+        );
+        assert!(!request.contains("create_user"), "{request}");
+    }
+
+    #[test]
+    fn create_account_sends_the_address_and_the_date_of_birth() {
+        let (base, captured) = spawn_status(200, r#"{"sent":true}"#);
+        let client = accounts_client().unwrap();
+        block_on(register_start(
+            &client,
+            &base,
+            "anon-public",
+            " ada@example.com ",
+            " 1990-01-01 ",
+        ))
+        .unwrap();
+        let request = captured
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())
+            .clone();
+        assert!(
+            request.starts_with("POST /functions/v1/accounts/register/start "),
+            "{request}"
+        );
+        assert!(
+            request.contains(r#"{"birth_date":"1990-01-01","email":"ada@example.com"}"#)
+                || request.contains(r#"{"email":"ada@example.com","birth_date":"1990-01-01"}"#),
+            "{request}"
+        );
+    }
+
+    #[test]
+    fn the_doors_keep_the_server_names() {
+        for (status, code) in [
+            (404, "no_account"),
+            (409, "account_exists"),
+            (403, "age_blocked"),
+            (400, "age_required"),
+        ] {
+            let body = serde_json::json!({ "error_code": code });
+            assert_eq!(send_failure(status, &body, None).to_string(), code);
+        }
+    }
+
+    #[test]
+    fn a_registration_code_goes_back_with_its_date() {
+        let (base, captured) = spawn_status(401, r#"{"error_code":"bad_code"}"#);
+        let vault = MemoryVault::new();
+        let client = accounts_client().unwrap();
+        let _ = block_on(sign_in_finish(
+            &client,
+            &base,
+            "anon-public",
+            &vault,
+            "ada@example.com",
+            SignInProof::Registration {
+                code: "12345678",
+                birth_date: "1990-01-01",
+            },
+        ));
+        let request = captured
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner())
+            .clone();
+        assert!(request.contains(r#""code":"12345678""#), "{request}");
+        assert!(
+            request.contains(r#""birth_date":"1990-01-01""#),
+            "{request}"
+        );
+        assert!(!request.contains("age_ticket"), "{request}");
+    }
+
+    #[test]
+    fn a_code_the_server_could_not_send_keeps_its_name() {
+        let (base, _) = spawn_status(502, r#"{"error_code":"unreachable"}"#);
+        let client = accounts_client().unwrap();
+        let error = block_on(sign_in_start(&client, &base, "anon", "ada@example.com")).unwrap_err();
+        assert_eq!(error.to_string(), "unreachable");
+        let (base, _) = spawn_status(502, r#"{"error_code":"mail_failed"}"#);
+        let error = block_on(sign_in_start(&client, &base, "anon", "ada@example.com")).unwrap_err();
+        assert_eq!(error.to_string(), "mail_failed");
     }
 
     #[test]

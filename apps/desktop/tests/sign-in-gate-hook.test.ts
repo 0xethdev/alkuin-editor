@@ -10,9 +10,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { renderOnce, unmountAll } from "./helpers/hook-harness";
 import { useSignInGate } from "../src/components/use-sign-in-gate";
 import {
+  ACCOUNT_EXISTS_LINE,
   CODE_ENTRY_EXPIRED,
   INVITE_NOT_ADMITTED_LINE,
   NOT_ADMITTED_LINE,
+  NO_ACCOUNT_LINE,
   signInRefusalMessage,
 } from "../src/lib/account-copy";
 import { AGE_BLOCKED, AGE_INVALID } from "../src/lib/age-gate";
@@ -140,6 +142,100 @@ describe("useSignInGate", () => {
     wake.dispatchEvent(new Event("online"));
     await settle();
     expect(mockedInvoke.mock.calls.length).toBe(before);
+  });
+
+  test("Create account sends the date first, and it goes back with the code and a resend", async () => {
+    mockedInvoke.mockImplementation((command) => {
+      if (command === "account_stored_session") return Promise.resolve({ signed_in: false });
+      if (command === "account_register_start") return Promise.resolve(undefined);
+      if (command === "account_sign_in_finish") {
+        return Promise.resolve({ signed_in: true, email: "new@example.com" });
+      }
+      return Promise.resolve(undefined);
+    });
+    render();
+    await settle();
+    let gate = render();
+    gate.setEmail("new@example.com");
+    gate = render();
+    await gate.register(" 1990-05-17 ");
+    gate = render();
+    expect(gate.step).toBe("code");
+    expect(mockedInvoke).toHaveBeenCalledWith("account_register_start", {
+      email: "new@example.com",
+      birthDate: "1990-05-17",
+    });
+    expect(mockedInvoke).not.toHaveBeenCalledWith("account_sign_in_start", expect.anything());
+    await gate.resend();
+    expect(mockedInvoke.mock.calls.filter(([c]) => c === "account_register_start").length).toBe(2);
+    gate = render();
+    await gate.submitCode("12345678");
+    gate = render();
+    expect(mockedInvoke).toHaveBeenLastCalledWith("account_sign_in_finish", {
+      email: "new@example.com",
+      code: "12345678",
+      birthDate: "1990-05-17",
+      ageTicket: "",
+    });
+    expect(editorUnlocked(gate.hasSession, gate.step)).toBe(true);
+  });
+
+  test("each door says when the address belongs at the other, and an under-age date sends nothing", async () => {
+    let start: () => Promise<unknown> = () => Promise.reject(new Error("no_account"));
+    mockedInvoke.mockImplementation((command) => {
+      if (command === "account_stored_session") return Promise.resolve({ signed_in: false });
+      if (command === "account_sign_in_start" || command === "account_register_start") {
+        return start();
+      }
+      return Promise.resolve(undefined);
+    });
+    render();
+    await settle();
+    let gate = render();
+    gate.setEmail("new@example.com");
+    gate = render();
+    await gate.sendCode();
+    gate = render();
+    expect(gate.step).toBe("welcome");
+    expect(gate.error).toBe(NO_ACCOUNT_LINE);
+
+    start = () => Promise.reject(new Error("account_exists"));
+    await gate.register("1990-05-17");
+    gate = render();
+    expect(gate.step).toBe("welcome");
+    expect(gate.error).toBe(ACCOUNT_EXISTS_LINE);
+
+    start = () => Promise.reject(new Error("age_blocked"));
+    await expect(gate.register("2016-05-17")).resolves.toBe("age_blocked");
+    gate = render();
+    expect(gate.step).toBe("welcome");
+    expect(gate.error).toBe(AGE_BLOCKED);
+  });
+
+  test("a different email after Create account signs in without a date", async () => {
+    mockedInvoke.mockImplementation((command) => {
+      if (command === "account_stored_session") return Promise.resolve({ signed_in: false });
+      if (command === "account_sign_in_finish") return Promise.reject(new Error("bad_code"));
+      return Promise.resolve(undefined);
+    });
+    render();
+    await settle();
+    let gate = render();
+    gate.setEmail("ada@example.com");
+    gate = render();
+    await gate.register("1990-05-17");
+    gate = render();
+    gate.differentEmail();
+    gate = render();
+    await gate.sendCode();
+    gate = render();
+    await gate.submitCode("12345678");
+    expect(mockedInvoke).toHaveBeenLastCalledWith("account_sign_in_finish", {
+      email: "ada@example.com",
+      code: "12345678",
+      birthDate: "",
+      ageTicket: "",
+    });
   });
 
   test("a code for an address with no account holds the sign-in and asks the date", async () => {

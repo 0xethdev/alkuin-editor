@@ -1,6 +1,9 @@
 /** `age`: the code matched an address with no account, and the date of birth is asked. */
 export type SignInStep = "welcome" | "code" | "age" | "desk";
 
+/** The welcome screen's two doors: Sign in (email, then code) and Create account (email and date of birth, then code). */
+export type SignInDoor = "sign-in" | "create";
+
 export type SignInEvent =
   | { type: "code-sent" }
   | { type: "different-email" }
