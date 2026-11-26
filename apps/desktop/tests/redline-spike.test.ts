@@ -1103,7 +1103,10 @@ describe("right-gutter ink chrome", () => {
       composeActionsStart,
       css.indexOf("}", composeActionsStart) + 1,
     );
-    expect(composeActions).toMatch(/flex-wrap:\s*nowrap/);
+    // The composer's three buttons are wider than the column, so its row wraps
+    // like the others (margin-action-row.test.ts measures it).
+    expect(composeActions).not.toMatch(/flex-wrap:\s*nowrap/);
+    expect(composeActions).toMatch(/gap:\s*12px 1\.35em/);
     // One primary rule for every margin row: a drawn line, so the theme can recolor it.
     const primaryStart = css.indexOf(".cm-editor .cm-redline-btn-primary {");
     expect(primaryStart).toBeGreaterThan(-1);

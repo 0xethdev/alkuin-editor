@@ -24,7 +24,7 @@ describe("build stamp", () => {
   });
 
   test("dev and the release build bake the same three values", () => {
-    expect(APP_VERSION).toBe("0.7.12");
+    expect(APP_VERSION).toBe("0.7.13");
     expect(APP_COMMIT).toMatch(/^[0-9a-f]{7}$/);
     expect(APP_BUILT).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(appBuildLabel()).toBe(`Version ${APP_VERSION} (${APP_COMMIT}) · ${APP_BUILT}`);

@@ -31,13 +31,23 @@ function focusOnMount(el: HTMLInputElement | null) {
   el?.focus();
 }
 
+/** A row's value is one line of YAML: a block with a newline in a value is
+ *  edited as raw text instead. The value field wraps, so it is a textarea,
+ *  and a pasted or dropped line break becomes a space here. */
+export function singleLineValue(text: string): string {
+  return text.replace(/[\r\n]+/g, " ");
+}
+
+type RowField = "key" | "value";
+type RowFieldElement = HTMLInputElement | HTMLTextAreaElement;
+
 interface FrontmatterRowProps {
   entry: FrontmatterRowState;
   index: number;
-  onUpdate: (index: number, field: "key" | "value", value: string) => void;
+  onUpdate: (index: number, field: RowField, value: string) => void;
   onRemove: (index: number) => void;
   onBlur: (index: number) => void;
-  onKeyDown: (e: KeyboardEvent<HTMLInputElement>, index: number, field: "key" | "value") => void;
+  onKeyDown: (e: KeyboardEvent<RowFieldElement>, index: number, field: RowField) => void;
 }
 
 function FrontmatterRow({
@@ -56,7 +66,7 @@ function FrontmatterRow({
   // Blurs that move focus to another field in the same row (Tab from key to
   // value) should not trigger blur-cleanup. Filter those out via relatedTarget.
   const handleBlur = useCallback(
-    (e: FocusEvent<HTMLInputElement>) => {
+    (e: FocusEvent<RowFieldElement>) => {
       const next = e.relatedTarget as Node | null;
       if (next && rowRef.current?.contains(next)) return;
       onBlur(index);
@@ -64,10 +74,12 @@ function FrontmatterRow({
     [index, onBlur],
   );
 
+  // The fields and the remove button share a 20px line, so a value that wraps
+  // keeps its name and the button beside its first line.
   return (
     <div
       ref={rowRef}
-      className="group -mx-3 flex items-center gap-4 rounded-lg px-3 py-1.5 focus-within:bg-[var(--surface-subtle)]"
+      className="group -mx-3 flex items-start gap-4 rounded-lg px-3 py-1.5 focus-within:bg-[var(--surface-subtle)]"
     >
       <input
         data-field="key"
@@ -84,21 +96,34 @@ function FrontmatterRow({
         ref={entry.autoFocus ? focusOnMount : undefined}
         placeholder="key"
         spellCheck={false}
-        className="w-[clamp(5rem,25%,9rem)] shrink-0 bg-transparent text-[13px] leading-[1.15] text-[var(--text-muted)] outline-none placeholder:text-[var(--text-muted)] placeholder:opacity-70 aria-invalid:underline aria-invalid:decoration-dotted"
+        className="w-[clamp(5rem,25%,9rem)] shrink-0 bg-transparent text-[13px] leading-5 text-[var(--text-muted)] outline-none placeholder:text-[var(--text-muted)] placeholder:opacity-70 aria-invalid:underline aria-invalid:decoration-dotted"
       />
 
-      <input
-        data-field="value"
-        type="text"
-        aria-label="Property value"
-        value={entry.value}
-        onChange={(e) => onUpdate(index, "value", e.target.value)}
-        onKeyDown={(e) => onKeyDown(e, index, "value")}
-        onBlur={handleBlur}
-        placeholder="value"
-        spellCheck={false}
-        className="min-w-0 flex-1 bg-transparent text-[13px] leading-[1.15] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] placeholder:opacity-70"
-      />
+      {/* A long value wraps to the column instead of running out of sight.
+          The hidden copy shares the grid cell and sizes it, so the field is as
+          tall as its text at any width. The two must wrap the same way. The
+          track's zero minimum lets a long URL break at the column's edge
+          instead of widening the track past it. */}
+      <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)] text-[13px] leading-5">
+        <span
+          aria-hidden
+          className="invisible col-start-1 row-start-1 whitespace-pre-wrap break-words"
+        >
+          {entry.value}{" "}
+        </span>
+        <textarea
+          data-field="value"
+          rows={1}
+          aria-label="Property value"
+          value={entry.value}
+          onChange={(e) => onUpdate(index, "value", singleLineValue(e.target.value))}
+          onKeyDown={(e) => onKeyDown(e, index, "value")}
+          onBlur={handleBlur}
+          placeholder="value"
+          spellCheck={false}
+          className="col-start-1 row-start-1 resize-none overflow-hidden whitespace-pre-wrap break-words bg-transparent p-0 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] placeholder:opacity-70"
+        />
+      </div>
 
       <button
         type="button"
@@ -150,11 +175,13 @@ export function FrontmatterPanel({ filePath }: FrontmatterPanelProps) {
   const entries = panel.mode === "entries" ? panel.rows : NO_ROWS;
 
   const handleKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLInputElement>, index: number, field: "key" | "value") => {
-      if (e.key === "Enter" && field === "value" && index === entries.length - 1) {
+    (e: KeyboardEvent<RowFieldElement>, index: number, field: RowField) => {
+      // Enter that commits an IME composition is the composition's, not ours.
+      if (e.key === "Enter" && field === "value" && !e.nativeEvent.isComposing) {
+        // A value is one line, so Enter never breaks it.
         e.preventDefault();
-        addEntry();
-        // focusOnMount on the newly-mounted empty row handles focus — no RAF needed.
+        // On the last row it opens a new one; focusOnMount focuses it.
+        if (index === entries.length - 1) addEntry();
         return;
       }
       if (e.key === "Backspace" && entries[index]?.key === "" && entries[index]?.value === "") {

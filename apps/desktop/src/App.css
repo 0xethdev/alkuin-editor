@@ -159,6 +159,7 @@
    and a keyboard user must see where they are (WCAG 2.4.7). */
 [data-document-header] textarea:focus-visible,
 [data-frontmatter] input:focus-visible,
+[data-frontmatter] textarea[data-field]:focus-visible,
 [data-settings-panel] input:focus-visible,
 [data-settings-panel] select:focus-visible,
 [data-search-overlay] input:focus-visible,

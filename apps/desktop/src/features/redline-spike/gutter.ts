@@ -97,6 +97,24 @@ export function marginNoteVisible(note: Pick<RedlineNote, "status" | "git">): bo
   return shareChangesOffered(note.git?.sharing);
 }
 
+type NotesCountHost = { dataset: DOMStringMap };
+
+/**
+ * How many cards the margin shows, as `data-redline-notes`. The editor's copy sets the
+ * draft's pads. The pane's copy sets the properties panel's, which sits outside the
+ * editor in the same column (redline-spike.css). The pane is written only when the
+ * count changes, so a redraw restyles nothing above the editor.
+ */
+export function markNotesShown(
+  editor: NotesCountHost,
+  pane: NotesCountHost | null,
+  count: number,
+): void {
+  const shown = String(count);
+  editor.dataset.redlineNotes = shown;
+  if (pane && pane.dataset.redlineNotes !== shown) pane.dataset.redlineNotes = shown;
+}
+
 export function redlineNoteClassName(note: RedlineNote): string {
   const intent = note.intent ?? (note.status === "accepted" ? "accepted" : "open");
   return `cm-redline-note cm-redline-ink cm-redline-note-${intent}`;
@@ -658,11 +676,15 @@ type StubMeasure = {
 
 class RedlineGutter {
   readonly gutter: HTMLElement;
+  // CodeMirror mounts the editor in its parent before it builds plugins, so the pane is
+  // there to find. One editor per pane.
+  private readonly pane: HTMLElement | null;
   private nodes = new Map<string, { el: HTMLElement; fingerprint: string }>();
   private stubs = new Map<string, HTMLElement>();
   private resize: ResizeObserver | null = null;
 
   constructor(view: EditorView) {
+    this.pane = view.dom.closest<HTMLElement>("[data-pane]");
     this.gutter = document.createElement("div");
     this.gutter.className = "cm-redline-gutter";
     this.gutter.contentEditable = "false";
@@ -699,11 +721,13 @@ class RedlineGutter {
     this.gutter.remove();
     this.nodes.clear();
     this.stubs.clear();
+    // The pane outlives the editor while the next file loads, and React does not own this.
+    if (this.pane) delete this.pane.dataset.redlineNotes;
   }
 
   private draw(view: EditorView) {
     const notes = view.state.field(redlineNotesField).filter(marginNoteVisible);
-    view.dom.dataset.redlineNotes = String(notes.length);
+    markNotesShown(view.dom, this.pane, notes.length);
     if (notes.length === 0) {
       this.gutter.replaceChildren();
       this.gutter.hidden = true;

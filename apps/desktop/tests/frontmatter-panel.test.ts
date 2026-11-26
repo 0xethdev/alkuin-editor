@@ -26,7 +26,7 @@ import {
   type FrontmatterPanelState,
 } from "../src/components/editor-area/frontmatter-panel-state";
 // @ts-expect-error the panel module is JSX and this test file sits outside that project
-import { FrontmatterPanel } from "../src/components/editor-area/frontmatter-panel";
+import { FrontmatterPanel, singleLineValue } from "../src/components/editor-area/frontmatter-panel";
 
 function rowsOf(panel: FrontmatterPanelState) {
   if (panel.mode !== "entries") throw new Error(`expected entries, got ${panel.mode}`);
@@ -246,6 +246,25 @@ describe("FrontmatterPanel", () => {
     const html = renderPanel("title: Hello\ndraft: true");
     expect(html).toContain('data-frontmatter-mode="entries"');
     expect(html.match(/data-field="key"/g)).toHaveLength(2);
-    expect(html).toContain('value="Hello"');
+    expect(html).toMatch(/data-field="value"[^>]*>Hello<\/textarea>/);
+  });
+
+  test("a long value is a one-row field that wraps, sized by a hidden copy of its text", () => {
+    const title = "COMPETITIVE CAPITALISM IS POWERFUL BECAUSE IT CAN MAKE THE PIE BIGGER";
+    const html = renderPanel(`title: "${title}"`);
+    expect(html).toMatch(/<textarea[^>]*data-field="value"[^>]*rows="1"/);
+    expect(html).toContain(`<span aria-hidden="true"`);
+    expect(html).toContain(`${title} </span>`);
+    // An unbroken URL breaks at the column's edge instead of widening the grid track.
+    expect(html).toContain("grid-cols-[minmax(0,1fr)]");
+  });
+});
+
+describe("singleLineValue", () => {
+  test("a pasted line break becomes one space, so the row stays a row", () => {
+    expect(singleLineValue("line one\nline two\r\n\r\nline three")).toBe(
+      "line one line two line three",
+    );
+    expect(singleLineValue("no breaks")).toBe("no breaks");
   });
 });

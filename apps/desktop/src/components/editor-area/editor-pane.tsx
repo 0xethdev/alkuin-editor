@@ -7,6 +7,7 @@ import { SectionRail } from "./section-rail";
 import { useCloseEditorSearchWhenInactive } from "./use-close-editor-search-when-inactive";
 import { useAgentProposals } from "@/features/agent-proposal/desk";
 import { useShareLive } from "@/features/document-share/live";
+import { useHasFrontmatter } from "@/hooks/use-frontmatter";
 import { useIsFileReady } from "@/hooks/use-tabs";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 
@@ -28,6 +29,7 @@ interface EditorPaneProps {
 
 export const EditorPane = memo(function EditorPane({ path, isActive }: EditorPaneProps) {
   const isReady = useIsFileReady(path);
+  const hasFrontmatter = useHasFrontmatter(path);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [editorView, setEditorView] = useState<EditorView | null>(null);
   useCloseEditorSearchWhenInactive(isActive);
@@ -53,19 +55,16 @@ export const EditorPane = memo(function EditorPane({ path, isActive }: EditorPan
   return (
     <div
       data-pane
+      // The top gap sits above the properties when there are any (prosemark-theme.css).
+      data-has-frontmatter={hasFrontmatter || undefined}
       className={
         isActive ? "relative z-10 h-full" : "absolute inset-0 invisible pointer-events-none"
       }
     >
       <EditorScrollContainer ref={scrollContainerRef}>
-        <div
-          className="w-full"
-          style={{
-            boxSizing: "border-box",
-            paddingLeft: "var(--writer-column-pad-left)",
-            paddingRight: "1.5rem",
-          }}
-        >
+        {/* The draft's column. Its pads come from prosemark-theme.css and, with notes
+            showing, redline-spike.css. */}
+        <div data-properties-column>
           <FrontmatterPanel filePath={path} />
         </div>
         <ProseMarkEditor

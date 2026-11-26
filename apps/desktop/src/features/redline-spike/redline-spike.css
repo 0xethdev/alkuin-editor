@@ -61,11 +61,13 @@
 /* The draft and the 268px rail are one centered unit. The draft stops at
    --writer-editor-max-width (ch, so text size moves the cap). Spare width
    splits to the outer edges. A pane too narrow to center keeps the 75px
-   step and the 95px gap, and the line shrinks instead of overlapping the rail. */
-.cm-editor[data-redline-notes]:not([data-redline-notes="0"]) > .cm-scroller {
+   step and the 95px gap, and the line shrinks instead of overlapping the rail.
+   The properties panel above the draft is the same column. It sits outside
+   `.cm-editor`, so it reads the count the gutter also writes on the pane. */
+.cm-editor[data-redline-notes]:not([data-redline-notes="0"]) > .cm-scroller,
+[data-pane][data-redline-notes]:not([data-redline-notes="0"]) [data-properties-column] {
   --redline-sidebar-width: 268px;
   --redline-rail-gap: 95px;
-  --redline-gutter-width: var(--redline-sidebar-width);
   --writer-unit: calc(
     var(--writer-editor-max-width, 75ch) + var(--redline-rail-gap) + var(--redline-sidebar-width)
   );
@@ -75,6 +77,10 @@
   --writer-column-pad-right: calc(
     var(--redline-sidebar-width) + var(--redline-rail-gap) + var(--redline-gutter-inset-right)
   );
+}
+
+.cm-editor[data-redline-notes]:not([data-redline-notes="0"]) > .cm-scroller {
+  --redline-gutter-width: var(--redline-sidebar-width);
   clip-path: inset(0 0 0 0);
 }
 
@@ -351,10 +357,13 @@
   padding-top: 0;
 }
 
-/* Must beat the gap: 0 above. Same element carries both classes. */
+/* Must beat the row rule above. Same element carries both classes.
+   Ask Alkuin, Leave note and Cancel are about 251px, wider than the 198px
+   column, so the row wraps like every other: Cancel takes the next line at
+   the far end. Held on one line it ran 53px past the rule, and at a 1000px
+   window past the pane's edge, which scrolled the pane sideways. */
 .cm-editor .cm-redline-note-actions.cm-redline-compose-actions {
-  flex-wrap: nowrap;
-  gap: 0 1.35em;
+  gap: 12px 1.35em;
   margin-top: 8px;
   width: 100%;
 }

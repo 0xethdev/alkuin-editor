@@ -14,7 +14,7 @@ import {
   redlineHandlersFacet,
   redlineSelectionTheme,
 } from "./decorations";
-import { marginNoteVisible, redlineGutter } from "./gutter";
+import { redlineGutter } from "./gutter";
 import { redlineFilePathFacet, redlineInkTickField, redlineNotesField } from "./notes";
 import { dropParkedNotes, parkNotes } from "./parked-notes";
 import "./redline-spike.css";
@@ -58,16 +58,10 @@ export function noteParker(state: EditorState) {
 
 const activeViewPlugin = ViewPlugin.define((view) => {
   activeRedlineView = view;
-  view.dom.dataset.redlineNotes = String(
-    view.state.field(redlineNotesField).filter(marginNoteVisible).length,
-  );
   const parker = noteParker(view.state);
   return {
     update(update) {
       parker.follow(update.transactions);
-      update.view.dom.dataset.redlineNotes = String(
-        update.state.field(redlineNotesField).filter(marginNoteVisible).length,
-      );
     },
     destroy() {
       parker.leave(view.state);

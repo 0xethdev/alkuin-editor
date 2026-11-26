@@ -70,19 +70,68 @@ html .cm-editor > .cm-scroller {
   font-size: var(--writer-editor-font-size, 14px);
 }
 
-.cm-editor .cm-scroller {
-  overflow: visible !important;
-
-  /* The draft is left-aligned. Padding-right is whatever is left after the
-     left step and the 75ch measure, so the line wraps at the measure and the
-     rest of the pane stays empty. `drawSelection`'s between-filler still
-     paints across that empty pad, so the right clip is the pad and the left
-     clip stays open for the hanging hash and the list dash. */
+/* The draft is left-aligned. Padding-right is whatever is left after the
+   left step and the 75ch measure, so the line wraps at the measure and the
+   rest of the pane stays empty. The properties panel above the draft is the
+   same column, so it reads the same pads and its values wrap where the body
+   does (redline-spike.css redefines both for the two when margin notes show). */
+.cm-editor .cm-scroller,
+[data-properties-column] {
   --writer-column-pad-right: max(
     1.5rem,
     calc(100% - var(--writer-column-pad-left, 75px) - var(--writer-editor-max-width, 75ch))
   );
+}
+
+/* `drawSelection`'s between-filler still paints across the empty right pad,
+   so the right clip is the pad and the left clip stays open for the hanging
+   hash and the list dash. */
+.cm-editor .cm-scroller {
+  overflow: visible !important;
   clip-path: inset(0 var(--writer-column-pad-right) 0 0);
+}
+
+/* The panel's column. `ch` in the pads resolves on this element, as it does on
+   `.cm-scroller`, so it takes the draft's face and size; the panel inside keeps
+   the interface face. Its controls set their own sizes.
+   With notes in a narrow window the draft gives way to the rail and can get
+   narrower than a property row (a 5rem name, two 1rem gaps and the 20px
+   button), which left the value 0px wide. The panel stops at 17rem and runs
+   on over the space above the rail, which starts lower, at the draft. */
+[data-properties-column] {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0
+    min(
+      var(--writer-column-pad-right),
+      max(1.5rem, calc(100% - var(--writer-column-pad-left, 75px) - 17rem))
+    )
+    0 var(--writer-column-pad-left, 75px);
+  font-family: var(
+    --writer-editor-font-family,
+    "Paper Mono",
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace
+  );
+  font-size: var(--writer-editor-font-size, 14px);
+}
+
+[data-properties-column] > * {
+  font-family: var(--ui-font);
+  font-size: 1rem;
+}
+
+/* A file with properties opens on them: the top gap goes above the panel
+   and the body follows it. Left on the body, the gap sat between the two,
+   and the first property sat under the scroller's top fade. */
+[data-pane][data-has-frontmatter] [data-properties-column] {
+  padding-top: var(--writer-editor-top-padding, 4rem);
+}
+
+[data-pane][data-has-frontmatter] .cm-editor > .cm-scroller > .cm-content {
+  padding-top: 0;
 }
 
 /* Selection-layer counter-clip. CM6 sets `position: absolute; left: 0;
